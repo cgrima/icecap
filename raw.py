@@ -136,7 +136,7 @@ def read_pik(pst, ext, process=process):
     return b[:, 2], b[:, 3] # Y coordinate, value
 
 
-def read_rsr(pst, ext, stat='hk', inv='spm'):
+def read_rsr(pst, ext, fit_model='hk', inv='spm'):
     """Read RSR files
 
     Arguments
@@ -148,11 +148,11 @@ def read_rsr(pst, ext, stat='hk', inv='spm'):
 
     Keywords
     --------
-    stat : string
+    fit_model : string
         statistical method used
     inv : string
         backscattering model used for physical properties inversion 
     """
-    fil = rsr_path+'/'+string.join(pst.split('/'), '_') + '.' + ext + '.' + stat + '.' + inv + '.txt'
+    fil = rsr_path+'/'+string.join(pst.split('/'), '_') + '.' + ext + '.' + fit_model + '.' + inv + '.txt'
     out = pd.read_table(fil)
     return out

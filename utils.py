@@ -9,14 +9,14 @@ import os
 import glob
 import string
 import rsr.utils
-import raw
+from icecap import raw
 import scipy.constants as ct
 import matplotlib.pyplot as plt
 from snow import properties, z_profile
 from params import *
 
 
-def bathymetry(pst, ext1, ext2, stat='hk', inv='spm', save=True):
+def bathymetry(pst, ext1, ext2, fit_model='hk', inv='spm', save=True):
     """Compute bathymetry
 
     Arguments
@@ -30,52 +30,35 @@ def bathymetry(pst, ext1, ext2, stat='hk', inv='spm', save=True):
 
     Keywords
     --------
-    stat : string
+    fit_model : string
         statistical method used
     inv : string
         backscattering model used for physical properties inversion
     save : bool
         wether to save the results in a txt file
     """
-    rsr1 = raw.read_rsr(pst, ext1, stat=stat, inv=inv)
-#    rsr2 = raw.read_rsr(pst, ext2, stat=stat, inv=inv)
+    rsr1 = raw.read_rsr(pst, ext1, fit_model=fit_model, inv=inv)
     z1, pik1 = raw.read_pik(pst, ext1)
     z2, pik2 = raw.read_pik(pst, ext2, process='MagHiResInco1')
 
-    lat = rsr1.lat#.values.tolist()
-    lon = rsr1.lon#.values.tolist()
-    eps = rsr1.eps#.values.tolist()
-    crl = rsr1.crl#.values.tolist()
-    sh = rsr1.eps#.values.tolist()
-    roll = rsr1.roll#.values.tolist()
-    flag = rsr1.flag#.values.tolist()
+    # Parameters
+    lat = rsr1.lat
+    lon = rsr1.lon
+    eps = rsr1.eps
+    crl = rsr1.crl
+    sh = rsr1.eps
+    roll = rsr1.roll
+    flag = rsr1.flag
     w = rsr1.xa.values.tolist()
     delay = abs(z2[w]-z1[w])*20e-9
     delay[np.isnan(delay)] = 0.
-    uncertainty = eps*0.
-    depth = eps*0.
-    dns_at_depth = eps*0.
-    
-    # Depth conversion
-    for i, val in enumerate(eps):
-        if np.isnan(val) is False:
-            z = np.linspace(0, 5000, 5000)
-            dns0 = properties.perm_kovacs95(val)
-            dns_a = z_profile.density_sorgelaw(dns0, z, 10./1.9)
-            dns_b = z_profile.density_sorgelaw(dns0, z, 68./1.9)
-            eps_a = properties.perm_kovacs95(dns_a, density=True)
-            eps_b = properties.perm_kovacs95(dns_b, density=True)
-            dt_a = np.cumsum(2*np.sqrt(eps_a)/ct.c)
-            dt_b = np.cumsum(2*np.sqrt(eps_b)/ct.c)
-            w_a = np.where(dt_a >= delay[i])[0][0]
-            w_b = np.where(dt_b >= delay[i])[0][0]
-            depth_a = z[w_a]
-            depth_b = z[w_b]
-            uncertainty[i] = abs(depth_a-depth_b)/2. +  ct.c/(2*bdw*np.sqrt(eps[i]))/2.
-            depth[i] = np.min([depth_a, depth_b])+ abs(depth_a-depth_b)/2.
-            dns_at_depth[i] = np.mean([dns_a[w_a], dns_b[w_b]])
-    
-    # Results
+
+    # Results    
+    z = [dns_depth(eps[i], delay[i]) for i, val in enumerate(eps)]
+    depth = [i[0] for i in z]
+    uncertainty = [i[1] for i in z]
+    dns_at_depth = [i[2] for i in z]
+
     out = {'lat':lat, 'lon':lon, 'eps':eps, 'sh':sh, 'crl':crl, 'delay':delay, 
            'uncertainty':uncertainty, 'depth':depth, 'dns_at_depth':dns_at_depth,
            'roll':roll, 'flag':flag}
@@ -87,6 +70,55 @@ def bathymetry(pst, ext1, ext2, stat='hk', inv='spm', save=True):
         out.to_csv(save_fil + '.bthm.txt', sep='\t', index=False, float_format='%.7f')
 
     return out
+
+
+def dns_depth(eps, delay, z=np.linspace(0, 5000, 5000), zp=[19., 129.]):
+    """Give an estimation for the depth of a subsurface echo and based on the surface density.
+    Assumes a Sorge's law depth/density profile
+
+    Arguments
+    ---------
+    eps : float
+        permittivity at the surface (z=0)
+    delay : Float
+        time delay between the surface and subssurface echo [sec.]
+
+    Keywords
+    --------
+    z : array of float
+        Depth profile to consider [m]
+    zp : [Float, Float]
+        Depth of the firn/ice transition to consider for the Sorge's Law
+
+    Output
+    ------
+    depth : Estimated depth for the subsurface echo [m]
+    uncertainty: +/- uncertainty on depth
+    dns_at_depth: Estimated density at depth [kg.m^{-3}] 
+    """
+    if np.isfinite(eps) == False: eps = 0.
+    if np.isfinite(delay) == False: delay = 0.
+    # Density conversions
+    dns0 = properties.perm_kovacs95(eps)
+    dns_a = z_profile.density_sorgelaw(dns0, z, zp[0])
+    dns_b = z_profile.density_sorgelaw(dns0, z, zp[1])
+    # Permittivity conversions
+    eps_a = properties.perm_kovacs95(dns_a, density=True)
+    eps_b = properties.perm_kovacs95(dns_b, density=True)
+    # Time profiles
+    dt_a = np.cumsum(2*np.sqrt(eps_a)/ct.c)
+    dt_b = np.cumsum(2*np.sqrt(eps_b)/ct.c)
+    # Depth estimations
+    w_a = np.where(dt_a >= delay)[0][0]
+    w_b = np.where(dt_b >= delay)[0][0]
+    depth_a = z[w_a]
+    depth_b = z[w_b]
+    
+    uncertainty = abs(depth_a-depth_b)/2. +  ct.c/(2*bdw*np.sqrt(eps))/2.
+    depth = np.min([depth_a, depth_b])+ abs(depth_a-depth_b)/2.
+    dns_at_depth = np.mean([dns_a[w_a], dns_b[w_b]])
+    
+    return depth, uncertainty, dns_at_depth
 
 
 def calibration(val, scale=scale, wl=ct.c/frq, pt=pt, antenna=antgain*2, rng = False,
@@ -145,7 +177,7 @@ def eps2dns(eps):
     return (np.sqrt(eps)-1)/845e-6
 
 
-def inline_rsr(pst, ext, stat='hk', inv='spm', save=True, winsize=1000.,
+def inline_rsr(pst, ext, fit_model='hk', inv='spm', save=True, winsize=1000.,
                sampling=250., verbose=True, process=process, other_gain=logain, **kwargs):
     """launch sliding RSR along a track
 
@@ -165,7 +197,7 @@ def inline_rsr(pst, ext, stat='hk', inv='spm', save=True, winsize=1000.,
     y, val = raw.read_pik(pst, ext, process=process)
     rng = geo.rng[np.arange(val.size)]
     amp = 10**(calibration(val, rng=rng, other=other_gain)/20.)
-    b = rsr.utils.inline_estim(amp, frq=frq, stat=stat, inv=inv, winsize=winsize, sampling=sampling, verbose=verbose, **kwargs)
+    b = rsr.utils.inline_estim(amp, frq=frq, fit_model=fit_model, inv=inv, winsize=winsize, sampling=sampling, verbose=verbose, **kwargs)
     xo = np.round(np.array(b.xo)) # positions of the computed statistics
     b['lat'] = np.array(geo.ix[xo, 'lat'])
     b['lon'] = np.array(geo.ix[xo, 'lon'])
@@ -174,7 +206,7 @@ def inline_rsr(pst, ext, stat='hk', inv='spm', save=True, winsize=1000.,
 
     if save is True:
         save_fil = string.replace(os.getcwd(), 'code', 'targ') + '/' + \
-                   string.join(pst.split('/'), '_') + '.' + ext + '.' + stat + '.' + inv
+                   string.join(pst.split('/'), '_') + '.' + ext + '.' + fit_model + '.' + inv
 	title = pst + ' ' + ext
         b.to_csv(save_fil + '.txt', sep='\t', index=False, float_format='%.7f')
         rsr.utils.plot_inline(b, frq=frq, title=title)
