@@ -178,7 +178,8 @@ def eps2dns(eps):
 
 
 def inline_rsr(pst, ext, fit_model='hk', inv='spm', save=True, winsize=1000.,
-               sampling=250., verbose=True, process=process, other_gain=logain, **kwargs):
+               sampling=250., verbose=True, process=process, other_gain=logain,
+               rng='surface', **kwargs):
     """launch sliding RSR along a track
 
     Arguments
@@ -186,17 +187,30 @@ def inline_rsr(pst, ext, fit_model='hk', inv='spm', save=True, winsize=1000.,
     pst : string
         pst name (e.g. 'MIS/JKB2e/Y35a')
     ext : string
-        pik file extension (e.g. 'elg_brn')
+        pik file extension (e.g. 'elg_brn') for the echo
     
     Keywords
     --------
     save : bool
         wether or not to save the results
     """
+    #--------------------------------------------------------------------------
+    # Data Retrieval
+    #--------------------------------------------------------------------------
     geo = raw.read_geo(pst)
     y, val = raw.read_pik(pst, ext, process=process)
-    rng = geo.rng[np.arange(val.size)]
+    if rng is 'surface':    
+        rng = geo.rng[np.arange(val.size)]
+    if rng is 'bed':
+        bthm = raw.read_bthm(pst, '*', ext)
+        air_rng = geo.rng[np.arange(val.size)]
+        x, xp, fp = np.arange(val.size), np.arange(bthm.shape[0]), np.array(bthm.depth)
+        sub_rng = np.interp(x, xp, fp)
+        rng = air_rng + sub_rng
     amp = 10**(calibration(val, rng=rng, other=other_gain)/20.)
+    #--------------------------------------------------------------------------
+    # Data Retrieval
+    #--------------------------------------------------------------------------
     b = rsr.utils.inline_estim(amp, frq=frq, fit_model=fit_model, inv=inv, winsize=winsize, sampling=sampling, verbose=verbose, **kwargs)
     xo = np.round(np.array(b.xo)) # positions of the computed statistics
     b['lat'] = np.array(geo.ix[xo, 'lat'])

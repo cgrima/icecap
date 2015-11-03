@@ -156,3 +156,21 @@ def read_rsr(pst, ext, fit_model='hk', inv='spm'):
     fil = rsr_path+'/'+string.join(pst.split('/'), '_') + '.' + ext + '.' + fit_model + '.' + inv + '.txt'
     out = pd.read_table(fil)
     return out
+
+
+def read_bthm(pst, ext1, ext2):
+    """Read BTHM files
+
+    Arguments
+    ---------
+    pst : string
+          pst name (e.g. 'MIS/JKB2e/Y35a')
+    ext1 : string
+        pik file extension (e.g. 'elg_brn') for the 1st arrival
+    ext2 : string
+        pik file extension (e.g. 'elg_brn') for the 2nd arrival
+    """
+    fil = glob.glob(rsr_path+'/'+string.join(pst.split('/'), '_') + '.' + ext1 + '-' + \
+          ext2 + '.bthm.txt')[0]
+    out = pd.read_table(fil)
+    return out
