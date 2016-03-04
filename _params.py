@@ -5,6 +5,8 @@ Parameters for ICP4 data
 Author: Cyril Grima <cyril.grima@gmail.com>
 """
 
+import os
+
 """
 INSTRUMENT SPECIFICITIES
 ------------------------
@@ -33,13 +35,12 @@ process = 'MagHiResInco1'
 PATHS
 -----
 """
-code_path = '../../../../../code/xtra/'+season+'/RSR/pik1.1m.RADnh3'
-rsr_path = '../../../../../targ/xtra/'+season+'/RSR/pik1.1m.RADnh3'
-cmp_path = '../../../../../targ/xtra/'+season+'/CMP/pik1.1m.RADnh3'
-pik_path = '../../../../../orig/xtra/'+season+'/PIK/pik1.1m.RADnh3'
-#pik_path = '../../../../../targ/artl/icecap_sabrina_grl/rsr'
-foc_path = '../../../../../targ/xtra/'+season+'/FOC/Best_Versions/S1_POS'
-norm_path = '../../../../../targ/norm'
+code_path = os.environ['WAIS'] + '/code/xtra/'+season+'/RSR/pik1.1m.RADnh3'
+rsr_path = os.environ['WAIS'] + '/targ/xtra/'+season+'/RSR/pik1.1m.RADnh3'
+cmp_path = os.environ['WAIS'] + '/targ/xtra/'+season+'/CMP/pik1.1m.RADnh3'
+pik_path = os.environ['WAIS'] + '/orig/xtra/'+season+'/PIK/pik1.1m.RADnh3'
+foc_path = os.environ['WAIS'] + '/targ/xtra/'+season+'/FOC/Best_Versions/S1_POS'
+norm_path = os.environ['WAIS'] + '/targ/norm'
 
 
 """
