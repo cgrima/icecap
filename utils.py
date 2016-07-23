@@ -178,7 +178,7 @@ def eps2dns(eps):
 
 
 def inline_rsr(pst, ext, fit_model='hk', inv='spm', save=True, winsize=1000.,
-               sampling=250., verbose=True, process=process, other_gain=logain,
+               sampling=250., verbose=True, process='MagHiResInco1', other_gain=logain,
                rng='surface', **kwargs):
     """launch sliding RSR along a track
 

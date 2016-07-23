@@ -110,7 +110,7 @@ def read_geo(pst):
     return pd.DataFrame({'lat':lat, 'lon':lon, 'roll':roll, 'rng':rng})
 
 
-def read_pik(pst, ext, process=process):
+def read_pik(pst, ext, process='MagHiResInco1'):
     """Read pick files
 
     Arguments
