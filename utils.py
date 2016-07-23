@@ -262,3 +262,33 @@ def group(pst, ext, save=True, rem_bad=True):
         out.to_csv(filename, sep='\t', index=False, float_format='%.7f')
     return out
 
+
+def topik1m(pst, ext, process0='pik1.RADnh3', process='MagLoResInco1'):
+    """Group  data of a given type in one txt file
+
+    Arguments
+    ---------
+    pst : string
+        pst pattern (example: 'MIS_JKB2e*')
+    ext : string/disk/kea/WAIS/orig/xtra/ICP4/PIK/pik1.1m.RADnh3/MIS/JKB2e/Y4
+        file extension (example: 'srf_cyg.hk.spm')
+    process0 ; string
+        process0 of the pik file to convert
+    process : string
+        process of the pik file to convert
+    
+    Example
+    -------
+    topik1(pst, 'srf_elg', process0='pyk1.RADnh3', process='MagLoResInco1')
+    """
+    source = os.path.split(pik_path)[0] + '/' + process0 + '/' + pst + '/' + process + '.' + ext
+    bxds = cmp_path + '/' + pst + '/MagHiResInco1'
+    target = pik_path + '/' + pst + '/MagHiResInco1.' + ext
+    LU = target + '_LU'
+    P = target + '_P'
+
+    os.system('mkdir -p ' + pik_path + '/' + pst)
+    os.system('pik4Hzto1m ' + pst + ' < ' + source + ' > ' + LU)
+    os.system('pk3 3200 0 3200 ' + bxds + ' < ' + LU + ' > ' + P)
+    os.system('cat ' + LU + ' ' + P + ' > ' + target)
+    os.system('rm ' + LU + ' ' + P)
