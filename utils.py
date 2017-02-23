@@ -263,7 +263,7 @@ def group(pst, ext, save=True, rem_bad=True):
     return out
 
 
-def topik1m(pst, ext, process0='pik1.RADnh3', process='MagLoResInco1'):
+def topik1m(pst, ext, process0='pik1.RADnh3', process='MagLoResInco1', process_target='MagHiResInco1'):
     """Group  data of a given type in one txt file
 
     Arguments
@@ -282,8 +282,8 @@ def topik1m(pst, ext, process0='pik1.RADnh3', process='MagLoResInco1'):
     topik1(pst, 'srf_elg', process0='pyk1.RADnh3', process='MagLoResInco1')
     """
     source = os.path.split(pik_path)[0] + '/' + process0 + '/' + pst + '/' + process + '.' + ext
-    bxds = cmp_path + '/' + pst + '/MagHiResInco1'
-    target = pik_path + '/' + pst + '/MagHiResInco1.' + ext
+    bxds = cmp_path + '/' + pst + '/'+process_target
+    target = pik_path + '/' + pst + '/'+process_target+'.' + ext
     LU = target + '_LU'
     P = target + '_P'
 
