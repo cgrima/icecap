@@ -1,4 +1,9 @@
 """
+
+!!!!!!!!!!!!!!!!
+!! DEPRECATED !!
+!!!!!!!!!!!!!!!!
+
 Various tools to read WAIS data
 Author: Cyril Grima <cyril.grima@gmail.com>
 """
