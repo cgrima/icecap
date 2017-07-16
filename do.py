@@ -77,9 +77,10 @@ def rsr_inline(pst, pik, save=True, product='MagHiResInco1',**kwargs):
                          '4':b['pt'].values + diff,
                          '5':b['pc'].values + diff,
                          '6':b['pn'].values + diff,
-                         '7':b['crl'].values, 
-                         '8':b['chisqr'].values,
-                         '9':b['flag'].values})
+                         '7':b['mu'].values, 
+                         '8':b['crl'].values, 
+                         '9':b['chisqr'].values,
+                         '91':b['flag'].values})
 
     if save is True:
         folder = p['rsr_path'] + '/' + pst

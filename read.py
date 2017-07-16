@@ -96,6 +96,7 @@ def rsr(pst, pik, process=None, product='MagHiResInco1'):
     if process is None:
         process = p['process']
     fil = string.replace(p['rsr_path'], p['process'], '') + process + '/' + pst + '/' + product + '.' + pik
-    out = pd.read_csv(fil, sep='\t', header=None, engine='python')
+    a = np.genfromtxt(fil, delimiter='\t')
+    out = {'xa':a[:,0], 'xo':a[:,1], 'xb':a[:,2], 'pt':a[:,3],'pc':a[:,4], 'pn':a[:,5], 'mu':a[:,6], 'crl':a[:,7], 'chisqr':a[:,8], 'flag':a[:,9] }
     return out
 
