@@ -8,8 +8,12 @@ import numpy as np
 import icecap as icp
 import os
 import rsr.fit as fit
+import rsr.utils as utils
 import string
+import subradar as sr
 import time
+import pandas as pd
+
 
 
 def timing(func):
@@ -21,6 +25,7 @@ def timing(func):
        t2 = time.time()
        print("- Processed in %.1f s.\n" % (t2-t1))
    return func_wrapper
+
 
 
 def loop(func):
@@ -38,58 +43,52 @@ def loop(func):
                 for i, pik_i in enumerate(pik_list):
                     if fnmatch.filter([pik_i], args[1]):
                         func(pst_i, pik_i, **kwargs)
-
     return func_wrapper
+       
 
 
-def signal_calibration(val, scale=1/1000., db=True, power=True):
-    """Calibrates the signal from pik files (Energy in dB) with predifined values.
-    ARGUMENTS
-        val : float or list of floats (Energy values)
-        dB : bool (if True, in dB, if False, linear values)
-        power : bool (if True, power, if False, amplitude values)
-    OUTPUT
-       Calibrated Energy in dB (Does not include geometric spreading) 
-    """
-    out = val*scale
-    if power is True:
-        if db is True:
-           out = out
-        elif db is False:
-           out = 10**(out)
-    elif power is False:
-        if db is True:
-            out = out/20.
-        elif db is False:
-            out = 10**(out/20.)
-
-    return out
-
-
-#@timing
-def rsr(pst, pik, lim, calib=True, gain=0, fit_model='hk', bins='knuth', **kwargs):
+def rsr(pst, pik, frame, **kwargs):
     """Apply RSR from a section of a transect
-    ARGUMENTS
-        calval : bool (Tell to use the calibration value stored in the hierarchy)
-        gain : float (Energy in dB to be added to the data)
     """
-    y, val = icp.read.pik(pst, pik, **kwargs)
-    if calib is True:
-        val = icp.do.signal_calibration(val)
+    val = icp.get.signal(pst, pik, **kwargs)
+    amp = 10**(val[frame[0]:frame[1]]/20.)
+    return fit.lmfit(amp)
 
-    amp = 10**(val/20.+gain/20.)
-    a = fit.lmfit(amp[lim[0]:lim[1]], fit_model=fit_model, bins=bins)
-    return a
 
 
 @loop
 @timing
-def rsr_inline(pst, pik, process=None, product='MagHiResInco1', save=True, winsize=1000., sampling=250., verbose=True, **rsr_kwargs):
+def rsr_inline(pst, pik, save=True, product='MagHiResInco1',**kwargs):
     """Process RSR along a profile
     """
-    y, val = icp.read.pik(pst, pik, process=process, product=product)
-    amp = icp.do.signal_calibration(val, db=False, power=False)
-    return amp
+    p = icp.get.params()
+
+    val = icp.get.signal(pst, pik, product=product, **kwargs)
+    amp = 10**(val/20)
+    b = utils.inline_estim(amp, **kwargs)
+
+    #Reorder data and remove geometric losses in air
+    val2 = icp.get.signal(pst, pik, product=product, air_loss=False, **kwargs)
+    diff = (val2-val)[b['xo']]
+
+    data = pd.DataFrame({'1':b['xa'].values, 
+                         '2':b['xo'].values,
+                         '3':b['xb'].values, 
+                         '4':b['pt'].values + diff,
+                         '5':b['pc'].values + diff,
+                         '6':b['pn'].values + diff,
+                         '7':b['crl'].values, 
+                         '8':b['chisqr'].values,
+                         '9':b['flag'].values})
+
+    if save is True:
+        folder = p['rsr_path'] + '/' + pst
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        data.to_csv(folder + '/' + product+'.'+pik, sep='\t', float_format='%.7f',
+                    na_rep='nan', header=False, index=False)
+        print('CREATED: ' + folder + '/' + product+'.'+pik)
+
 
 
 @loop

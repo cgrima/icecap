@@ -61,14 +61,14 @@ def ztim(fil):
         fil : string (full path + file name to read)
     """
     if icp.read.isfile(fil) is False: return
-    out = pd.read_csv(fil, sep='\(|\)| |,', header=None, engine='python')
+    out = pd.read_csv(fil, sep='\(|\)| |,', header=None)
     a = np.array(out)
     htim = (a[:,3] - a[:,3])*24 + a[:,5]*24/(86400*1e4)
     out['htim'] = htim
     return out
 
 
-def pik(pst, pik, process=None, product='MagHiResInco1'):
+def pik(pst, pik, process=None, product='MagHiResInco1', **kwargs):
     """Read pick files
     ARGUMENTS
         pst : string (e.g. 'MIS/JKB2e/Y35a')
@@ -87,4 +87,15 @@ def pik(pst, pik, process=None, product='MagHiResInco1'):
     out = np.genfromtxt('.read_pik.tmp', delimiter='\t')
     os.system('rm ' + p['code_path'] + '/.read_pik.tmp')
     return out[:, 2], out[:, 3] # Y coordinate, value
+
+
+def rsr(pst, pik, process=None, product='MagHiResInco1'):
+    """Read an rsr file
+    """
+    p = icp.get.params()
+    if process is None:
+        process = p['process']
+    fil = string.replace(p['rsr_path'], p['process'], '') + process + '/' + pst + '/' + product + '.' + pik
+    out = pd.read_csv(fil, sep='\t', header=None, engine='python')
+    return out
 
