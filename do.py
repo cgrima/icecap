@@ -6,9 +6,11 @@ Author: Cyril Grima <cyril.grima@gmail.com>
 import fnmatch
 import numpy as np
 import icecap as icp
+import inspect
 import os
 import rsr.fit as fit
 import rsr.utils as utils
+import rsr.invert as invert
 import string
 import subradar as sr
 import time
@@ -44,7 +46,18 @@ def loop(func):
                     if fnmatch.filter([pik_i], args[1]):
                         func(pst_i, pik_i, **kwargs)
     return func_wrapper
-       
+
+
+
+
+def save(data, target):
+    """Save a dictionnary of data in a text file
+    """
+    df = pd.DataFrame(data)
+    df.to_csv(target, sep='\t', index=False, float_format='%.7f', header=False, na_rep='nan')
+    print('CREATED: ' + target)
+    
+                       
 
 
 def rsr(pst, pik, frame, **kwargs):
@@ -58,7 +71,7 @@ def rsr(pst, pik, frame, **kwargs):
 
 @loop
 @timing
-def rsr_inline(pst, pik, save=True, product='MagHiResInco1',**kwargs):
+def rsr_inline(pst, pik, save=True, product='MagHiResInco1', **kwargs):
     """Process RSR along a profile
     """
     p = icp.get.params()
@@ -117,3 +130,59 @@ def topik1m(pst, pik, from_process='pik1.RADnh3', from_product='MagLoResInco1', 
     os.system('cat ' + LU + ' ' + P + ' > ' + target)
     os.system('rm ' + LU + ' ' + P)
     print('CREATED: ' + target)
+
+
+def gather(pst, pik, file=None, **kwargs):
+    """Gather data in a text file
+    """
+    p = icp.get.params()
+    a = pd.DataFrame()
+
+    if os.path.isfile():
+       pass 
+    #if os.path.isfile(file) is False:
+    #else 
+  
+
+
+@loop
+@timing
+def surface_coefficients(pst, pik, wb=15e6, product='MagHiResInco1', save=True, **kwargs):
+    """Surface coefficients (Reflectance and Scattering)
+    """
+    p = icp.get.params()
+    a = icp.read.rsr(pst, pik, product='MagHiResInco1', **kwargs)
+    h = icp.get.surface_range(pst)[a['xo'].astype(int)]
+    Rsc, Rsn = invert.srf_coeff(Psc=a['pc'], Psn=a['pn'], h0=h, wb=15e6)
+    out = {'Rsc':Rsc, 'Rsn':Rsn}
+
+    if save is True:
+        p = icp.get.params()
+        target = p['rsr_path'] + '/' + pst + '/' + product + '.' + pik + '.' + inspect.stack()[0][3]
+        icp.do.save(out, target)
+
+
+
+@loop
+@timing
+def surface_properties(pst, pik, wf=60e6, product='MagHiResInco1', save=True, **kwargs):
+    """Return surface permittivity and RMS height
+    """
+    a = icp.read.rsr(pst, pik, product='MagHiResInco1', **kwargs)
+    h = icp.get.surface_range(pst)[a['xo'].astype(int)]
+    L = 10*np.log10( sr.utils.geo_loss(2*h) )
+
+    eps, sh = np.zeros(np.size(h)), np.zeros(np.size(h))
+
+    for i, val in enumerate(h):
+        tmp = invert.spm(wf, a['pc'][i]-L[i], a['pn'][i]-L[i])
+        eps[i] = tmp['eps']
+        sh[i] = tmp['sh']
+
+    out = {'sh':sh, 'eps':eps}
+
+    if save is True:
+        p = icp.get.params()
+        target = p['rsr_path'] + '/' + pst + '/' + product + '.' + pik + '.' + inspect.stack()[0][3]
+        icp.do.save(out, target)
+

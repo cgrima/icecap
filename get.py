@@ -5,6 +5,7 @@ import os
 import string
 import fnmatch
 import subradar as sr
+import rsr
 
 
 def params():
@@ -60,7 +61,7 @@ def pst(pattern, **kwargs):
     return fnmatch.filter(pst.flatten(), pattern)
 
 
-def flight(pst, **kwargs):
+def flight(pst):
     """Get Flight for a PST
     """
     p = icp.get.params()
@@ -69,7 +70,7 @@ def flight(pst, **kwargs):
     return data[i,:].flatten()[1]
 
 
-def surface_range(pst):
+def surface_range(pst, **kwargs):
     """Range to surface interpolated alon the foc_time
     """
     p = icp.get.params()
@@ -122,9 +123,21 @@ def signal(pst, pik, scale=1/1000., calib=True, air_loss=True, gain=0, **kwargs)
     return val + gain
 
 
-def Rsc(pst, pik, **kwargs):
-    pass
+def surface_coefficients(pst, pik, wb=15e6, **kwargs):
+    """Surface coefficients (Reflectance and Scattering)
+    """
+    a = icp.read.rsr(pst, pik, **kwargs)
+    h = icp.get.surface_range(pst)[a['xo'].astype(int)]
+    Rsc, Rsn = rsr.invert.srf_coeff(Psc=a['pc'], Psn=a['pn'], h0=h, wb=15e6)
+    return {'Rsc':Rsc, 'Rsn':Rsn}
 
 
-def Rsn(pst, pik, **kwargs):
-    pass
+def surface_properties(pst, pik, wf=60e6, **kwargs):
+    """Return surface permittivity and RMS height
+    """
+    a = icp.read.rsr(pst, pik, **kwargs)
+    h = icp.get.surface_range(pst)[a['xo'].astype(int)]
+    L = 10*np.log10( sr.utils.geo_loss(2*h) )
+    eps, sh = rsr.invert.spm(wf, a['pc']-L, a['pn']-L)
+    return {'sh':sh, 'eps':eps}
+    
