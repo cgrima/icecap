@@ -89,7 +89,7 @@ def pik(pst, pik, process=None, product='MagHiResInco1', **kwargs):
     return out[:, 2], out[:, 3] # Y coordinate, value
 
 
-def rsr(pst, pik, process=None, product='MagHiResInco1'):
+def rsr(pst, pik, process=None, product='MagHiResInco1', **kwargs):
     """Read an rsr file
     """
     p = icp.get.params()
@@ -99,4 +99,28 @@ def rsr(pst, pik, process=None, product='MagHiResInco1'):
     a = np.genfromtxt(fil, delimiter='\t')
     out = {'xa':a[:,0], 'xo':a[:,1], 'xb':a[:,2], 'pt':a[:,3],'pc':a[:,4], 'pn':a[:,5], 'mu':a[:,6], 'crl':a[:,7], 'chisqr':a[:,8], 'flag':a[:,9] }
     return out
+
+
+def surface_coefficients(pst, pik, process=None, product='MagHiResInco1', **kwargs):
+    """Read a surface_coefficients file
+    """
+    p = icp.get.params()
+    if process is None:
+        process = p['process']
+    fil = string.replace(p['rsr_path'], p['process'], '') + process + '/' + pst + '/' + product + '.' + pik + '.surface_coefficients'
+    a = np.genfromtxt(fil, delimiter='\t')
+    out = {'Rsc':a[:,0], 'Rsn':a[:,1], }
+    return out
+
+
+def surface_properties(pst, pik, process=None, product='MagHiResInco1', **kwargs):
+    """Read a surface_coefficients file
+    """
+    p = icp.get.params()
+    if process is None:
+        process = p['process']
+    fil = string.replace(p['rsr_path'], p['process'], '') + process + '/' + pst + '/' + product + '.' + pik + '.surface_properties'
+    a = np.genfromtxt(fil, delimiter='\t')
+    out = {'sh':a[:,0], 'eps':a[:,1], 'flag':a[:,2]}
+    return out 
 

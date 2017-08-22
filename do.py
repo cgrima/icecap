@@ -132,16 +132,55 @@ def topik1m(pst, pik, from_process='pik1.RADnh3', from_product='MagLoResInco1', 
     print('CREATED: ' + target)
 
 
-def gather(pst, pik, file=None, **kwargs):
+
+@loop
+@timing
+def gather(pst, pik, fil=None, product='MagHiResInco1', **kwargs):
     """Gather data in a text file
     """
     p = icp.get.params()
     a = pd.DataFrame()
 
-    if os.path.isfile():
-       pass 
-    #if os.path.isfile(file) is False:
-    #else 
+    print('Gathering data from '+pst)
+
+    r = icp.read.rsr(pst, pik, **kwargs)
+
+    xo = [np.int(i) for i in r['xo']]
+    #a['pst'] = np.array([pst for i in xo])
+    a['xo'] = xo
+    a['crl'] = r['crl']
+    a['longitude'] = icp.get.longitude(pst)[xo]
+    a['latitude'] = icp.get.latitude(pst)[xo]
+    a['roll'] = icp.get.roll(pst)[xo]
+    a['surface_range'] = icp.get.surface_range(pst)[xo]
+    
+    if os.path.isfile(p['rsr_path'] + '/' + pst + '/' + product + '.' + pik + '.surface_coefficients'):
+        b = icp.read.surface_coefficients(pst, pik, **kwargs)
+        a['Rsc'] = b['Rsc']
+        a['Rsn'] = b['Rsn']
+    else:
+        a['Rsc'] = xo*np.nan
+        a['Rsn'] = xo*np.nan
+
+    if os.path.isfile(p['rsr_path'] + '/' + pst + '/' + product + '.' + pik + '.surface_properties'):
+        b = icp.read.surface_properties(pst, pik, **kwargs)
+        a['sh'] = b['sh']
+        a['eps'] = b['eps']
+        a['flag'] = r['flag']*b['flag']
+    else:
+        a['sh'] = xo*np.nan
+        a['eps'] = xo*np.nan
+        a['flag'] = xo*np.nan
+
+    if fil is None:
+        fil = p['season'] + '_gather.csv'
+
+    if os.path.isfile(fil):
+        c = pd.read_csv(fil)
+        d = c.append(a, ignore_index=True)
+        d.to_csv(fil, index=False, float_format='%.7f', na_rep='nan')
+    else:
+        a.to_csv(fil, index=False, float_format='%.7f', na_rep='nan')
   
 
 
@@ -154,7 +193,8 @@ def surface_coefficients(pst, pik, wb=15e6, product='MagHiResInco1', save=True, 
     a = icp.read.rsr(pst, pik, product='MagHiResInco1', **kwargs)
     h = icp.get.surface_range(pst)[a['xo'].astype(int)]
     Rsc, Rsn = invert.srf_coeff(Psc=a['pc'], Psn=a['pn'], h0=h, wb=15e6)
-    out = {'Rsc':Rsc, 'Rsn':Rsn}
+ 
+    out = {'0_Rsc':Rsc, '1_Rsn':Rsn}
 
     if save is True:
         p = icp.get.params()
@@ -172,14 +212,15 @@ def surface_properties(pst, pik, wf=60e6, product='MagHiResInco1', save=True, **
     h = icp.get.surface_range(pst)[a['xo'].astype(int)]
     L = 10*np.log10( sr.utils.geo_loss(2*h) )
 
-    eps, sh = np.zeros(np.size(h)), np.zeros(np.size(h))
+    eps, sh, flag = np.zeros(np.size(h)), np.zeros(np.size(h)), np.zeros(np.size(h))
 
     for i, val in enumerate(h):
         tmp = invert.spm(wf, a['pc'][i]-L[i], a['pn'][i]-L[i])
         eps[i] = tmp['eps']
         sh[i] = tmp['sh']
+        flag[i] = np.int(3e8/wf*0.05 > tmp['sh'])
 
-    out = {'sh':sh, 'eps':eps}
+    out = {'0_sh':sh, '1_eps':eps, '2_flag':flag}
 
     if save is True:
         p = icp.get.params()

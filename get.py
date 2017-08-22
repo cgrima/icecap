@@ -123,21 +123,21 @@ def signal(pst, pik, scale=1/1000., calib=True, air_loss=True, gain=0, **kwargs)
     return val + gain
 
 
-def surface_coefficients(pst, pik, wb=15e6, **kwargs):
-    """Surface coefficients (Reflectance and Scattering)
-    """
-    a = icp.read.rsr(pst, pik, **kwargs)
-    h = icp.get.surface_range(pst)[a['xo'].astype(int)]
-    Rsc, Rsn = rsr.invert.srf_coeff(Psc=a['pc'], Psn=a['pn'], h0=h, wb=15e6)
-    return {'Rsc':Rsc, 'Rsn':Rsn}
+#def surface_coefficients(pst, pik, wb=15e6, **kwargs):
+#    """Surface coefficients (Reflectance and Scattering)
+#    """
+#    a = icp.read.rsr(pst, pik, **kwargs)
+#    h = icp.get.surface_range(pst)[a['xo'].astype(int)]
+#    Rsc, Rsn = rsr.invert.srf_coeff(Psc=a['pc'], Psn=a['pn'], h0=h, wb=15e6)
+#    return {'Rsc':Rsc, 'Rsn':Rsn}
 
 
-def surface_properties(pst, pik, wf=60e6, **kwargs):
-    """Return surface permittivity and RMS height
-    """
-    a = icp.read.rsr(pst, pik, **kwargs)
-    h = icp.get.surface_range(pst)[a['xo'].astype(int)]
-    L = 10*np.log10( sr.utils.geo_loss(2*h) )
-    eps, sh = rsr.invert.spm(wf, a['pc']-L, a['pn']-L)
-    return {'sh':sh, 'eps':eps}
+#def surface_properties(pst, pik, wf=60e6, **kwargs):
+#    """Return surface permittivity and RMS height
+#    """
+#    a = icp.read.rsr(pst, pik, **kwargs)
+#    h = icp.get.surface_range(pst)[a['xo'].astype(int)]
+#    L = 10*np.log10( sr.utils.geo_loss(2*h) )
+#    eps, sh = rsr.invert.spm(wf, a['pc']-L, a['pn']-L)
+#    return {'sh':sh, 'eps':eps}
     
