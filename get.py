@@ -123,6 +123,19 @@ def signal(pst, pik, scale=1/1000., calib=True, air_loss=True, gain=0, **kwargs)
     return val + gain
 
 
+def ztim2frame(pst, year, day, ztim):
+    """Convert ztim to the closest frame numbr in a PST
+    """
+    p = icp.get.params()
+    z = icp.read.ztim(p['foc_path']+'/'+pst+'/ztim_DNhH')
+    z_year  = z[1]
+    z_day = z[3]
+    z_ztim = z[5]
+    w = [(z_year == year) * (z_day == day) * (z_ztim > ztim)]
+    frame = np.nonzero(w)[1][0]
+    return frame
+
+
 #def surface_coefficients(pst, pik, wb=15e6, **kwargs):
 #    """Surface coefficients (Reflectance and Scattering)
 #    """
