@@ -36,15 +36,16 @@ def loop(func):
     def func_wrapper(*args, **kwargs):
         pst_list = icp.get.pst(args[0])
 
-        if 'from_process' in locals():
-            process = from_process
-        elif 'process' not in locals():
+        if 'from_process' in kwargs:
+            process = kwargs['from_process']
+        elif 'process' not in kwargs:
             process = None
-            for pst_i in pst_list:
-                product_list, pik_list = icp.get.pik(pst_i, process=process, **kwargs)
-                for i, pik_i in enumerate(pik_list):
-                    if fnmatch.filter([pik_i], args[1]):
-                        func(pst_i, pik_i, **kwargs)
+
+        for pst_i in pst_list:
+            product_list, pik_list = icp.get.pik(pst_i, process=process, **kwargs)
+            for i, pik_i in enumerate(pik_list):
+                if fnmatch.filter([pik_i], args[1]):
+                    func(pst_i, pik_i, **kwargs)
     return func_wrapper
 
 
@@ -107,16 +108,17 @@ def rsr_inline(pst, pik, save=True, product='MagHiResInco1', **kwargs):
 
 @loop
 @timing
-def topik1m(pst, pik, from_process='pik1.RADnh3', from_product='MagLoResInco1', to_product='MagHiResInco1'):
+def topik1m(pst, pik, from_process='pik1', from_product='MagLoResInco1', to_product='MagHiResInco1'):
     """ Inteprolate any pik file into 1m sampling
+        NOTE: at this point, from_process is mandatory for @loop to work
     """
     p = icp.get.params()
 
     source = string.replace(p['pik_path'], p['process'], '') + from_process + '/' + pst + '/' + from_product + '.' + pik
     bxds = p['cmp_path'] + '/' + pst + '/'+ to_product
 
-    if icp.read.isfile(source) is False: return
-    if icp.read.isfile(bxds) is False: return
+    test = icp.read.isfile(source) * icp.read.isfile(bxds)
+    if test is 0: return
 
     if not os.path.exists(p['pik_path'] + '/' + pst):
         os.makedirs(p['pik_path'] + '/' + pst)
