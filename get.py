@@ -81,14 +81,14 @@ def surface_range(pst, **kwargs):
 
 def longitude(pst):
     p = icp.get.params()
-    t, val = icp.read.norm(pst, 'AVN', 'lon_ang', interp=True)
+    t, val = icp.read.norm(pst, 'GPS', 'lon_ang', interp=True)
     tref = icp.read.ztim(p['foc_path']+'/'+pst+'/ztim_DNhH')['htim']
     return np.interp(tref, t, val)
 
 
 def latitude(pst):
     p = icp.get.params()
-    t, val = icp.read.norm(pst, 'AVN', 'lat_ang', interp=True)
+    t, val = icp.read.norm(pst, 'GPS', 'lat_ang', interp=True)
     tref = icp.read.ztim(p['foc_path']+'/'+pst+'/ztim_DNhH')['htim']
     return np.interp(tref, t, val)
 

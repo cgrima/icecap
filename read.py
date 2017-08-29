@@ -96,6 +96,8 @@ def rsr(pst, pik, process=None, product='MagHiResInco1', **kwargs):
     if process is None:
         process = p['process']
     fil = string.replace(p['rsr_path'], p['process'], '') + process + '/' + pst + '/' + product + '.' + pik
+    if icp.read.isfile(fil) is False: return
+    
     a = np.genfromtxt(fil, delimiter='\t')
     out = {'xa':a[:,0], 'xo':a[:,1], 'xb':a[:,2], 'pt':a[:,3],'pc':a[:,4], 'pn':a[:,5], 'mu':a[:,6], 'crl':a[:,7], 'chisqr':a[:,8], 'flag':a[:,9] }
     return out
@@ -108,6 +110,8 @@ def surface_coefficients(pst, pik, process=None, product='MagHiResInco1', **kwar
     if process is None:
         process = p['process']
     fil = string.replace(p['rsr_path'], p['process'], '') + process + '/' + pst + '/' + product + '.' + pik + '.surface_coefficients'
+    if icp.read.isfile(fil) is False: return
+
     a = np.genfromtxt(fil, delimiter='\t')
     out = {'Rsc':a[:,0], 'Rsn':a[:,1], }
     return out
@@ -120,6 +124,7 @@ def surface_properties(pst, pik, process=None, product='MagHiResInco1', **kwargs
     if process is None:
         process = p['process']
     fil = string.replace(p['rsr_path'], p['process'], '') + process + '/' + pst + '/' + product + '.' + pik + '.surface_properties'
+    if icp.read.isfile(fil) is False: return
     a = np.genfromtxt(fil, delimiter='\t')
     out = {'sh':a[:,0], 'eps':a[:,1], 'flag':a[:,2]}
     return out 

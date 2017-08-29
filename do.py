@@ -146,15 +146,17 @@ def gather(pst, pik, fil=None, product='MagHiResInco1', **kwargs):
     print('Gathering data from '+pst)
 
     r = icp.read.rsr(pst, pik, **kwargs)
-
-    xo = [np.int(i) for i in r['xo']]
-    #a['pst'] = np.array([pst for i in xo])
-    a['xo'] = xo
-    a['crl'] = r['crl']
-    a['longitude'] = icp.get.longitude(pst)[xo]
-    a['latitude'] = icp.get.latitude(pst)[xo]
-    a['roll'] = icp.get.roll(pst)[xo]
-    a['surface_range'] = icp.get.surface_range(pst)[xo]
+    if os.path.isfile(p['rsr_path'] + '/' + pst + '/' + product + '.' + pik ):
+      xo = [np.int(i) for i in r['xo']]
+      #a['pst'] = np.array([pst for i in xo])
+      a['xo'] = xo
+      a['crl'] = r['crl']
+      a['longitude'] = icp.get.longitude(pst)[xo]
+      a['latitude'] = icp.get.latitude(pst)[xo]
+      a['roll'] = icp.get.roll(pst)[xo]
+      a['surface_range'] = icp.get.surface_range(pst)[xo]
+    else:
+      return
     
     if os.path.isfile(p['rsr_path'] + '/' + pst + '/' + product + '.' + pik + '.surface_coefficients'):
         b = icp.read.surface_coefficients(pst, pik, **kwargs)
