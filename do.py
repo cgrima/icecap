@@ -231,3 +231,34 @@ def surface_properties(pst, pik, wf=60e6, product='MagHiResInco1', save=True, **
         target = p['rsr_path'] + '/' + pst + '/' + product + '.' + pik + '.' + inspect.stack()[0][3]
         icp.do.save(out, target)
 
+
+
+@loop
+@timing
+def bed_coefficients(pst, bed_pik, wb=15e6, product='MagHiResInco1', save=True, **kwargs):
+    p = icp.get.params()
+    # get first available srf pik
+    foo, pik_list = icp.get.pik('SMIS/MKB2l/Y51a')
+    srf_pik_list = [i for i in bar if 'srf' in i]
+
+    if srf_pik_list:
+        srf_pik = srf_pik_list[0]
+    else:
+        print('IGNORED: No srf pik for '+pst)
+        return
+
+        s = icp.read.rsr(pst, srf_pik, product='MagHiResInco1', **kwargs)
+    b = icp.read.rsr(pst, bed_pik, product='MagHiResInco1', **kwargs)
+
+    h0 = icp.get.surface_range(pst)[a['xo'].astype(int)]
+    #h1 = 
+    #n1 = 
+    #sh = 
+    #Q1 = 
+    
+    Rbc, Rbn = invert.bed_coeff(Psc=s['pc'], Psn=s['pn'],
+                                Pbc=b['pc'], Pbn=b['pn'],
+                                n1=n1, sh=sh, h0=h0, h1=h1, Q1=Q1,
+                                wb=15e6)
+
+    out = {'0_Rbc':Rsc, '1_Rbn':Rsn}

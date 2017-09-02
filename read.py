@@ -22,7 +22,7 @@ def isfile(fil, verbose=True):
     return out
 
 
-def norm(pst, instrument, stream, interp=False):
+def norm(pst, instrument, stream, interp=False, **kwargs):
     """Read data streams from norm
     ARGUMENTS
         pst : string (e.g. 'MIS/JKB2e/Y35a')
@@ -54,6 +54,29 @@ def norm(pst, instrument, stream, interp=False):
 
     return time, data
 
+
+def tpro(pst, typ, fil, interp=True, **kwargs):
+    """Read tpro file
+    """
+    p = icp.get.params()
+    data_file = p['tpro_path'] + '/' + pst + '/' + typ + '/' + fil + '.bin'
+    if icp.read.isfile(data_file) is False: return
+
+    os.system('zvert ' + data_file + ' > tmp.tab')
+    data = np.genfromtxt('tmp.tab')[:,-1]
+    time = ztim('tmp.tab')['htim'].values
+    os.system('rm tmp.tab')
+
+    if interp is True: #interpolate to 1-m sampling
+        foc_file = p['foc_path'] + '/' + pst + '/ztim_DNhH'
+
+        if icp.read.isfile(foc_file) is False: return
+
+        foc_time = ztim(foc_file)['htim'].values
+        data = np.interp(foc_time, time, data)
+        time = foc_time
+
+    return time, data
 
 def ztim(fil):
     """Read time in a ztim-format file

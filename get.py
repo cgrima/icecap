@@ -20,6 +20,7 @@ def params():
     out['cmp_path'] = string.replace(out['rsr_path'], 'RSR', 'CMP')
     out['pik_path'] = out['root_path'] + '/orig/xtra/'+out['season']+'/PIK/' + out['process']
     out['foc_path'] = out['root_path'] + '/targ/xtra/' + out['season']+ '/FOC/Best_Versions/S1_POS'
+    out['tpro_path'] = out['root_path'] + '/targ/tpro'
     out['season_flight_pst'] = out['root_path'] + '/syst/linux/lib/dbase/season_flight_pst'
     return out
 
@@ -75,6 +76,13 @@ def surface_range(pst, **kwargs):
     """
     p = icp.get.params()
     t, val = icp.read.norm(pst, 'LAS', 'las_rng', interp=True)
+    tref = icp.read.ztim(p['foc_path']+'/'+pst+'/ztim_DNhH')['htim']
+    return np.interp(tref, t, val)
+
+
+def ice_thickness(pst, **kwargs):
+    p = icp.get.params()
+    t, val = icp.read.tpro(pst, 'p_pik1_icethk', 'ztim_llh_icethk', interp=True)
     tref = icp.read.ztim(p['foc_path']+'/'+pst+'/ztim_DNhH')['htim']
     return np.interp(tref, t, val)
 
