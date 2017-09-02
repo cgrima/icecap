@@ -1,8 +1,8 @@
 """
 
-!!!!!!!!!!!!!!!!
-!! DEPRECATED !!
-!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!
+! DEPRECATED !
+!!!!!!!!!!!!!!
 
 Various tools to manipulate WAIS data
 Author: Cyril Grima <cyril.grima@gmail.com>
