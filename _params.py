@@ -1,6 +1,11 @@
+"""
+!!!!!!!!!!!!!!
+! DEPRECATED !
+!!!!!!!!!!!!!!
+
+
 # !! THIS IS AN EXAMPLE. USE YOUR OWN VALUES !!
 
-"""
 Parameters for ICP4 data
 Author: Cyril Grima <cyril.grima@gmail.com>
 """
