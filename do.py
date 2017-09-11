@@ -155,6 +155,7 @@ def gather(pst, pik, fil=None, product='MagHiResInco1', **kwargs):
       a['latitude'] = icp.get.latitude(pst)[xo]
       a['roll'] = icp.get.roll(pst)[xo]
       a['surface_range'] = icp.get.surface_range(pst)[xo]
+      a['ice_thickness'] = icp.get.ice_thickness(pst)[xo]
     else:
       return
     
@@ -163,8 +164,8 @@ def gather(pst, pik, fil=None, product='MagHiResInco1', **kwargs):
         a['Rsc'] = b['Rsc']
         a['Rsn'] = b['Rsn']
     else:
-        a['Rsc'] = xo*np.nan
-        a['Rsn'] = xo*np.nan
+        a['Rsc'] = [np.nan for i in xo]
+        a['Rsn'] = [np.nan for i in xo]
 
     if os.path.isfile(p['rsr_path'] + '/' + pst + '/' + product + '.' + pik + '.surface_properties'):
         b = icp.read.surface_properties(pst, pik, **kwargs)
@@ -172,9 +173,17 @@ def gather(pst, pik, fil=None, product='MagHiResInco1', **kwargs):
         a['eps'] = b['eps']
         a['flag'] = r['flag']*b['flag']
     else:
-        a['sh'] = xo*np.nan
-        a['eps'] = xo*np.nan
-        a['flag'] = xo*np.nan
+        a['sh'] = [np.nan for i in xo]
+        a['eps'] = [np.nan for i in xo]
+        a['flag'] = [np.nan for i in xo]
+
+    if os.path.isfile(p['rsr_path'] + '/' + pst + '/' + product + '.' + pik + '.bed_coefficients'):
+        b = icp.read.bed_coefficients(pst, pik, **kwargs)
+        a['Rbc'] = b['Rbc']
+        a['Rbn'] = b['Rbn']
+    else:
+        a['Rbc'] = [np.nan for i in xo]
+        a['Rbn'] = [np.nan for i in xo]
 
     if fil is None:
         fil = p['season'] + '_gather.csv'
@@ -212,7 +221,7 @@ def surface_coefficients(pst, pik, wb=15e6, product='MagHiResInco1', save=True, 
 def surface_properties(pst, pik, wf=60e6, product='MagHiResInco1', save=True, **kwargs):
     """Return surface permittivity and RMS height
     """
-    a = icp.read.rsr(pst, pik, product='MagHiResInco1', **kwargs)
+    a = icp.read.rsr(pst, pik, **kwargs)
     h = icp.get.surface_range(pst)[a['xo'].astype(int)]
     L = 10*np.log10( sr.utils.geo_loss(2*h) )
 
@@ -235,30 +244,48 @@ def surface_properties(pst, pik, wf=60e6, product='MagHiResInco1', save=True, **
 
 @loop
 @timing
-def bed_coefficients(pst, bed_pik, wb=15e6, product='MagHiResInco1', save=True, **kwargs):
+def bed_coefficients(pst, bed_pik, srf_pik=None, att_rate=0., wf=60e6, wb=15e6, product='MagHiResInco1', save=True, **kwargs):
+    """Return bed reflance and scattering coefficients
+    att_rate is 1-way attenuation rate of the ice in dB/km
+    """
     p = icp.get.params()
-    # get first available srf pik
-    foo, pik_list = icp.get.pik('SMIS/MKB2l/Y51a')
-    srf_pik_list = [i for i in bar if 'srf' in i]
 
-    if srf_pik_list:
-        srf_pik = srf_pik_list[0]
-    else:
-        print('IGNORED: No srf pik for '+pst)
-        return
+    # Get srf_pik
+    foo, pik_list = icp.get.pik(pst)
+    srf_pik_list = [i for i in pik_list if 'srf' in i]
 
-        s = icp.read.rsr(pst, srf_pik, product='MagHiResInco1', **kwargs)
-    b = icp.read.rsr(pst, bed_pik, product='MagHiResInco1', **kwargs)
+    if srf_pik:
+        if srf_pik in srf_pik_list:
+            pass
+        else:
+            print('IGNORED: No ' + srf_pik + ' for '+pst)
+            return
+    else: # Choose first pik in the list
+        if srf_pik_list:
+            srf_pik = srf_pik_list[0]
+        else:
+            print('IGNORED: No srf pik for '+pst)
+            return
 
-    h0 = icp.get.surface_range(pst)[a['xo'].astype(int)]
-    #h1 = 
-    #n1 = 
-    #sh = 
-    #Q1 = 
+    s = icp.read.rsr(pst, srf_pik, **kwargs)
+    s_prop = icp.read.surface_properties(pst, srf_pik, **kwargs)
+    b = icp.read.rsr(pst, bed_pik, **kwargs)
+
+    h0 = icp.get.surface_range(pst)[b['xo'].astype(int)]
+    h1 = icp.get.ice_thickness(pst)[b['xo'].astype(int)]
+    n1 = (1-np.sqrt(s_prop['eps'])) / (1+np.sqrt(s_prop['eps']))
+    sh = s_prop['sh']
+    Q1 = 2 * h1/1e3 * att_rate
     
     Rbc, Rbn = invert.bed_coeff(Psc=s['pc'], Psn=s['pn'],
                                 Pbc=b['pc'], Pbn=b['pn'],
                                 n1=n1, sh=sh, h0=h0, h1=h1, Q1=Q1,
-                                wb=15e6)
+                                wb=wb, wf=wf)
 
-    out = {'0_Rbc':Rsc, '1_Rbn':Rsn}
+    out = {'0_Rbc':Rbc, '1_Rbn':Rbn}
+
+    if save is True:
+        p = icp.get.params()
+        target = p['rsr_path'] + '/' + pst + '/' + product + '.' + bed_pik + '.' + inspect.stack()[0][3]
+        icp.do.save(out, target)
+

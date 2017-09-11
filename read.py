@@ -152,3 +152,16 @@ def surface_properties(pst, pik, process=None, product='MagHiResInco1', **kwargs
     out = {'sh':a[:,0], 'eps':a[:,1], 'flag':a[:,2]}
     return out 
 
+
+def bed_coefficients(pst, pik, process=None, product='MagHiResInco1', **kwargs):
+    """Read a bed_coefficients file
+    """
+    p = icp.get.params()
+    if process is None:
+        process = p['process']
+    fil = string.replace(p['rsr_path'], p['process'], '') + process + '/' + pst + '/' + product + '.' + pik + '.bed_coefficients'
+    if icp.read.isfile(fil) is False: return
+
+    a = np.genfromtxt(fil, delimiter='\t')
+    out = {'Rbc':a[:,0], 'Rbn':a[:,1], }
+    return out
