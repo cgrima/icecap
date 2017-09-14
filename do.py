@@ -273,7 +273,7 @@ def bed_coefficients(pst, bed_pik, srf_pik=None, att_rate=0., wf=60e6, wb=15e6, 
 
     h0 = icp.get.surface_range(pst)[b['xo'].astype(int)]
     h1 = icp.get.ice_thickness(pst)[b['xo'].astype(int)]
-    n1 = (1-np.sqrt(s_prop['eps'])) / (1+np.sqrt(s_prop['eps']))
+    n1 = np.sqrt(s_prop['eps'])
     sh = s_prop['sh']
     Q1 = 2 * h1/1e3 * att_rate
     
