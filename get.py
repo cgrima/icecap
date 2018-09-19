@@ -6,6 +6,7 @@ import string
 import fnmatch
 import subradar as sr
 import rsr
+import pandas as pd
 
 
 def params():
@@ -20,6 +21,7 @@ def params():
     out['cmp_path'] = string.replace(out['rsr_path'], 'RSR', 'CMP')
     out['pik_path'] = out['root_path'] + '/orig/xtra/'+out['season']+'/PIK/' + out['process']
     out['foc_path'] = out['root_path'] + '/targ/xtra/' + out['season']+ '/FOC/Best_Versions/S1_POS'
+    out['sweep_path'] = out['root_path'] + '/targ/xtra/' + out['season']+ '/FOC/Best_Versions/S5_VEW'
     out['tpro_path'] = out['root_path'] + '/targ/tpro'
     out['season_flight_pst'] = out['root_path'] + '/syst/linux/lib/dbase/season_flight_pst'
     return out
@@ -60,6 +62,38 @@ def pst(pattern, **kwargs):
     i = np.where(data[:,2] == p['season'])
     pst = data[i,0]
     return fnmatch.filter(pst.flatten(), pattern)
+
+
+def sweep(pst, **kwargs):
+    """Get available sweeps files for a PST
+    """
+    p = icp.get.params()
+    folder = string.join([p['sweep_path'], pst], '/')
+    files = glob.glob(folder + '/*sweeps*')
+    products = [string.split(i, '/')[-1] for i in files]
+    return products
+
+
+def rsr_data(pst, **kwargs):
+    """Display data avaialble to launch RSR
+    """
+    psts = icp.get.pst(pst)
+    cmps = [ icp.get.cmp(i, process='pik1') for i in psts ]
+    cmps_1m = [ icp.get.cmp(i, process='pik1.1m') for i in psts ]
+    piks = [ icp.get.pik(i, process='pik1')[1] for i in psts]
+    piks_1m = [ icp.get.pik(i, process='pik1.1m')[1] for i in psts]
+    sweeps = [ icp.get.sweep(i) for i in psts ]
+    d = {'PST':psts}
+    df = pd.DataFrame(d) 
+    #df['CMP_pik1'] = cmps
+    df['sweeps'] = sweeps
+    df['CMP_pik1.1m'] = cmps_1m
+    df['PIK_pik1'] = piks
+    df['PIK1_pik1.1m'] = piks_1m
+    pd.set_option('display.max_rows', 500)
+    pd.set_option('display.max_columns', 500)
+    pd.set_option('display.width', 1000)
+    return df
 
 
 def flight(pst):
