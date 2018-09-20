@@ -15,6 +15,7 @@ import string
 import subradar as sr
 import time
 import pandas as pd
+import multiprocessing
 
 
 
@@ -31,7 +32,7 @@ def timing(func):
 
 
 def loop(func):
-    """Decorator for processing over multiple PSTs
+    """Decorator for processing sequentialy over multiple PSTs
     """
     def func_wrapper(*args, **kwargs):
         pst_list = icp.get.pst(args[0])
@@ -40,14 +41,18 @@ def loop(func):
             process = kwargs['from_process']
         elif 'process' not in kwargs:
             process = None
-
+       
+        _processes = []
         for pst_i in pst_list:
             product_list, pik_list = icp.get.pik(pst_i, process=process, **kwargs)
             for i, pik_i in enumerate(pik_list):
                 if fnmatch.filter([pik_i], args[1]):
-                    func(pst_i, pik_i, **kwargs)
+                    p = multiprocessing.Process(target=func, args=(pst_i, pik_i), kwargs=kwargs)
+                    p.start()
+                    _processes.append(p)
+        for p in _processes:
+            p.join()
     return func_wrapper
-
 
 
 
@@ -59,7 +64,6 @@ def save(data, target):
     print('CREATED: ' + target)
     
                        
-
 
 def rsr(pst, pik, frame, **kwargs):
     """Apply RSR from a section of a transect
@@ -106,8 +110,8 @@ def rsr_inline(pst, pik, save=True, product='MagHiResInco1', **kwargs):
 
 
 
-@loop
 @timing
+@loop
 def topik1m(pst, pik, from_process='pik1', from_product='MagLoResInco1', to_product='MagHiResInco1'):
     """ Inteprolate any pik file into 1m sampling
         NOTE: at this point, from_process is mandatory for @loop to work
@@ -116,8 +120,9 @@ def topik1m(pst, pik, from_process='pik1', from_product='MagLoResInco1', to_prod
 
     source = string.replace(p['pik_path'], p['process'], '') + from_process + '/' + pst + '/' + from_product + '.' + pik
     bxds = p['cmp_path'] + '/' + pst + '/'+ to_product
+    sweep = string.join([p['sweep_path'], pst, 'sweeps'], '/')
 
-    test = icp.read.isfile(source) * icp.read.isfile(bxds)
+    test = icp.read.isfile(source) * icp.read.isfile(bxds) * icp.read.isfile(sweep, verbose=False)
     if test is 0: return
 
     if not os.path.exists(p['pik_path'] + '/' + pst):
@@ -130,9 +135,8 @@ def topik1m(pst, pik, from_process='pik1', from_product='MagLoResInco1', to_prod
     os.system('pik4Hzto1m ' + pst + ' < ' + source + ' > ' + LU)
     os.system('pk3 3200 0 3200 ' + bxds + ' < ' + LU + ' > ' + P)
     os.system('cat ' + LU + ' ' + P + ' > ' + target)
-    os.system('rm ' + LU + ' ' + P)
+    os.system('rm -f ' + LU + ' ' + P)
     print('CREATED: ' + target)
-
 
 
 @loop
@@ -288,4 +292,5 @@ def bed_coefficients(pst, bed_pik, srf_pik=None, att_rate=0., wf=60e6, wb=15e6, 
         p = icp.get.params()
         target = p['rsr_path'] + '/' + pst + '/' + product + '.' + bed_pik + '.' + inspect.stack()[0][3]
         icp.do.save(out, target)
+
 
