@@ -2,7 +2,7 @@ import glob
 import icecap as icp
 import numpy as np
 import os
-import string
+#import string
 import fnmatch
 import subradar as sr
 import rsr
@@ -15,10 +15,10 @@ def params():
     out = {'code_path':os.getcwd()}
     out['season'] = out['code_path'].split('/')[-3]
     out['process'] = out['code_path'].split('/')[-1]
-    out['root_path'] = string.join(out['code_path'].split('/')[0:-5], '/')
+    out['root_path'] = '/'.join(out['code_path'].split('/')[0:-5])
     out['norm_path'] = out['root_path'] + '/targ/norm'
-    out['rsr_path'] = string.replace(out['code_path'], 'code', 'targ')
-    out['cmp_path'] = string.replace(out['rsr_path'], 'RSR', 'CMP')
+    out['rsr_path'] = out['code_path'].replace('code', 'targ')
+    out['cmp_path'] = out['rsr_path'].replace('RSR', 'CMP')
     out['pik_path'] = out['root_path'] + '/orig/xtra/'+out['season']+'/PIK/' + out['process']
     out['foc_path'] = out['root_path'] + '/targ/xtra/' + out['season']+ '/FOC/Best_Versions/S1_POS'
     out['sweep_path'] = out['root_path'] + '/targ/xtra/' + out['season']+ '/FOC/Best_Versions/S5_VEW'
@@ -33,11 +33,11 @@ def pik(pst, process=None, **kwargs):
     p = icp.get.params()
     if process is None:
         process = p['process']
-    folder = string.join([string.replace(p['pik_path'],'/'+p['process'],''), process, pst], '/')
+    folder = '/'.join([p['pik_path'].replace('/'+p['process'],''), process, pst])
     files = glob.glob(folder + '/*.*')
-    names = [string.split(i, '/')[-1] for i in files]
-    products = [string.split(i, '.')[0] for i in names]
-    pik = [string.split(i, '.')[1] for i in names]
+    names = [i.split('/')[-1] for i in files]
+    products = [i.split('.')[0] for i in names]
+    pik = [i.split('.')[1] for i in names]
 
     return products, pik
 
@@ -48,9 +48,9 @@ def cmp(pst, process=None, **kwargs):
     p = icp.get.params()
     if process is None:
         process = p['process']
-    folder = string.join([string.replace(p['cmp_path'],'/'+p['process'],''), process, pst], '/')
+    folder = '/'.join([p['cmp_path'].replace('/'+p['process'],''), process, pst])
     files = glob.glob(folder + '/*[!.meta]')
-    products = [string.split(i, '/')[-1] for i in files]
+    products = [i.split('/')[-1] for i in files]
     return products
 
 
@@ -58,7 +58,7 @@ def pst(pattern, **kwargs):
     """Get PSTs for the current season that match a given pattern (regex)
     """
     p = icp.get.params()
-    data = np.genfromtxt(p['season_flight_pst'], delimiter=' ', dtype='string')
+    data = np.genfromtxt(p['season_flight_pst'], delimiter=' ', dtype=np.str)
     i = np.where(data[:,2] == p['season'])
     pst = data[i,0]
     return fnmatch.filter(pst.flatten(), pattern)
@@ -68,9 +68,9 @@ def sweep(pst, **kwargs):
     """Get available sweeps files for a PST
     """
     p = icp.get.params()
-    folder = string.join([p['sweep_path'], pst], '/')
+    folder = '/'.join([p['sweep_path'], pst])
     files = glob.glob(folder + '/*sweeps*')
-    products = [string.split(i, '/')[-1] for i in files]
+    products = [i.split('/')[-1] for i in files]
     return products
 
 
@@ -84,7 +84,7 @@ def rsr_data(pst, **kwargs):
     piks_1m = [ icp.get.pik(i, process='pik1.1m')[1] for i in psts]
     sweeps = [ icp.get.sweep(i) for i in psts ]
     d = {'PST':psts}
-    df = pd.DataFrame(d) 
+    df = pd.DataFrame(d)
     #df['CMP_pik1'] = cmps
     df['sweeps'] = sweeps
     df['CMP_pik1.1m'] = cmps_1m
@@ -100,7 +100,7 @@ def flight(pst):
     """Get Flight for a PST
     """
     p = icp.get.params()
-    data = np.genfromtxt(p['season_flight_pst'], delimiter=' ', dtype='string')
+    data = np.genfromtxt(p['season_flight_pst'], delimiter=' ', dtype=np.str)
     i = np.where(data[:,0] == pst)
     return data[i,:].flatten()[1]
 
@@ -149,7 +149,7 @@ def signal(pst, pik, scale=1/1000., calib=True, air_loss=True, gain=0, **kwargs)
 
     h = icp.get.surface_range(pst)
     # Pad the end of piks with nans to equal regular data length
-    val = np.pad(val.astype(float), (0,np.size(h)-np.size(val)), 
+    val = np.pad(val.astype(float), (0,np.size(h)-np.size(val)),
                  'constant', constant_values=np.nan)
 
     val = val*scale
@@ -161,7 +161,7 @@ def signal(pst, pik, scale=1/1000., calib=True, air_loss=True, gain=0, **kwargs)
     if air_loss is True:
         L = 10*np.log10( sr.utils.geo_loss(2*h) )
         gain = gain-L
-    
+
     return val + gain
 
 
@@ -195,4 +195,4 @@ def ztim2frame(pst, year, day, ztim):
 #    L = 10*np.log10( sr.utils.geo_loss(2*h) )
 #    eps, sh = rsr.invert.spm(wf, a['pc']-L, a['pn']-L)
 #    return {'sh':sh, 'eps':eps}
-    
+
