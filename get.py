@@ -74,6 +74,19 @@ def sweep(pst, **kwargs):
     return products
 
 
+def rsr(pst, process=None, **kwargs):
+    """Get available rsr files
+    """
+    p = icp.get.params()
+    if process is None:
+        process = p['process']
+    folder = '/'.join([p['rsr_path'].replace('/'+p['process'],''), process, pst])
+    files = glob.glob(folder + '/*[!.meta]')
+    products = [i.split('/')[-1] for i in files]
+    pik = [i.split('.')[1] for i in products]
+    return pik
+
+
 def rsr_data(pst, **kwargs):
     """Display data avaialble to launch RSR
     """
@@ -83,6 +96,7 @@ def rsr_data(pst, **kwargs):
     piks = [ icp.get.pik(i, process='pik1')[1] for i in psts]
     piks_1m = [ icp.get.pik(i, process='pik1.1m')[1] for i in psts]
     sweeps = [ icp.get.sweep(i) for i in psts ]
+    rsr_1m = [ icp.get.rsr(i, process='pik1.1m') for i in psts  ]
     d = {'PST':psts}
     df = pd.DataFrame(d)
     #df['CMP_pik1'] = cmps
@@ -90,6 +104,7 @@ def rsr_data(pst, **kwargs):
     df['CMP_pik1.1m'] = cmps_1m
     df['PIK_pik1'] = piks
     df['PIK1_pik1.1m'] = piks_1m
+    df['RSR_1m'] = rsr_1m
     pd.set_option('display.max_rows', 500)
     pd.set_option('display.max_columns', 500)
     pd.set_option('display.width', 1000)
