@@ -7,7 +7,7 @@ import icecap as icp
 import numpy as np
 import os
 import pandas as pd
-import string
+#import string
 import sys
 
 
@@ -47,7 +47,7 @@ def norm(pst, instrument, stream, interp=False, **kwargs):
         foc_file = p['foc_path'] + '/' + pst + '/ztim_DNhH'
 
         if icp.read.isfile(foc_file) is False: return
-   
+
         foc_time = ztim(foc_file)['htim'].values
         data = np.interp(foc_time, time, data)
         time = foc_time
@@ -99,12 +99,12 @@ def pik(pst, pik, process=None, product='MagHiResInco1', **kwargs):
         process : string (e.g. 'pik1.1m.RADnh3')
         product : string (e.g. 'MagHiResInco1')
     OUTPUT
-        list : list (Y coordinate, value) 
+        list : list (Y coordinate, value)
     """
     p = icp.get.params()
     if process is None:
         process = p['process']
-    fil = string.replace(p['pik_path'], p['process'], '') + process + '/' + pst + '/' + product + '.' + pik
+    fil = p['pik_path'].replace( p['process'], '') + process + '/' + pst + '/' + product + '.' + pik
     if icp.read.isfile(fil) is False: return
     os.system('grep P ' + fil + ' > ' + p['code_path'] + '/.read_pik.tmp')
     out = np.genfromtxt('.read_pik.tmp', delimiter='\t')
@@ -118,9 +118,9 @@ def rsr(pst, pik, process=None, product='MagHiResInco1', **kwargs):
     p = icp.get.params()
     if process is None:
         process = p['process']
-    fil = string.replace(p['rsr_path'], p['process'], '') + process + '/' + pst + '/' + product + '.' + pik
+    fil = p['rsr_path'].replace( p['process'], '') + process + '/' + pst + '/' + product + '.' + pik
     if icp.read.isfile(fil) is False: return
-    
+
     a = np.genfromtxt(fil, delimiter='\t')
     out = {'xa':a[:,0], 'xo':a[:,1], 'xb':a[:,2], 'pt':a[:,3],'pc':a[:,4], 'pn':a[:,5], 'mu':a[:,6], 'crl':a[:,7], 'chisqr':a[:,8], 'flag':a[:,9] }
     return out
@@ -132,7 +132,7 @@ def surface_coefficients(pst, pik, process=None, product='MagHiResInco1', **kwar
     p = icp.get.params()
     if process is None:
         process = p['process']
-    fil = string.replace(p['rsr_path'], p['process'], '') + process + '/' + pst + '/' + product + '.' + pik + '.surface_coefficients'
+    fil = p['rsr_path'].replace( p['process'], '') + process + '/' + pst + '/' + product + '.' + pik + '.surface_coefficients'
     if icp.read.isfile(fil) is False: return
 
     a = np.genfromtxt(fil, delimiter='\t')
@@ -146,11 +146,11 @@ def surface_properties(pst, pik, process=None, product='MagHiResInco1', **kwargs
     p = icp.get.params()
     if process is None:
         process = p['process']
-    fil = string.replace(p['rsr_path'], p['process'], '') + process + '/' + pst + '/' + product + '.' + pik + '.surface_properties'
+    fil = p['rsr_path'].replace( p['process'], '') + process + '/' + pst + '/' + product + '.' + pik + '.surface_properties'
     if icp.read.isfile(fil) is False: return
     a = np.genfromtxt(fil, delimiter='\t')
     out = {'sh':a[:,0], 'eps':a[:,1], 'flag':a[:,2]}
-    return out 
+    return out
 
 
 def bed_coefficients(pst, pik, process=None, product='MagHiResInco1', **kwargs):
@@ -159,7 +159,7 @@ def bed_coefficients(pst, pik, process=None, product='MagHiResInco1', **kwargs):
     p = icp.get.params()
     if process is None:
         process = p['process']
-    fil = string.replace(p['rsr_path'], p['process'], '') + process + '/' + pst + '/' + product + '.' + pik + '.bed_coefficients'
+    fil = p['rsr_path'].replace( p['process'], '') + process + '/' + pst + '/' + product + '.' + pik + '.bed_coefficients'
     if icp.read.isfile(fil) is False: return
 
     a = np.genfromtxt(fil, delimiter='\t')
