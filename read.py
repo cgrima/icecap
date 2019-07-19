@@ -122,7 +122,7 @@ def rsr(pst, pik, process=None, product='MagHiResInco1', **kwargs):
     if icp.read.isfile(fil) is False: return
 
     a = np.genfromtxt(fil, delimiter='\t')
-    out = {'xa':a[:,0], 'xo':a[:,1], 'xb':a[:,2], 'pt':a[:,3],'pc':a[:,4], 'pn':a[:,5], 'mu':a[:,6], 'crl':a[:,7], 'chisqr':a[:,8], 'flag':a[:,9] }
+    out = {'xa':a[:,0], 'xo':a[:,1], 'xb':a[:,2], 'pt':a[:,3],'pc':a[:,4], 'pn':a[:,5], 'mu':a[:,6], 'crl':a[:,7], 'chisqr':a[:,8] }
     return out
 
 

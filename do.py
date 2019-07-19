@@ -8,10 +8,11 @@ import numpy as np
 import icecap as icp
 import inspect
 import os
+import rsr.run as run
 import rsr.fit as fit
 import rsr.utils as utils
 import rsr.invert as invert
-import string
+#import string
 import subradar as sr
 import time
 import pandas as pd
@@ -41,17 +42,18 @@ def loop(func):
             process = kwargs['from_process']
         elif 'process' not in kwargs:
             process = None
-       
+
         _processes = []
         for pst_i in pst_list:
             product_list, pik_list = icp.get.pik(pst_i, process=process, **kwargs)
             for i, pik_i in enumerate(pik_list):
                 if fnmatch.filter([pik_i], args[1]):
-                    p = multiprocessing.Process(target=func, args=(pst_i, pik_i), kwargs=kwargs)
-                    p.start()
-                    _processes.append(p)
-        for p in _processes:
-            p.join()
+                    func(pst_i, pik_i, **kwargs)
+#                    p = multiprocessing.Process(target=func, args=(pst_i, pik_i), kwargs=kwargs)
+#                    p.start()
+#                    _processes.append(p)
+#        for p in _processes:
+#            p.join()
     return func_wrapper
 
 
@@ -62,43 +64,45 @@ def save(data, target):
     df = pd.DataFrame(data)
     df.to_csv(target, sep='\t', index=False, float_format='%.7f', header=False, na_rep='nan')
     print('CREATED: ' + target)
-    
-                       
+
+
 
 def rsr(pst, pik, frame, **kwargs):
     """Apply RSR from a section of a transect
     """
     val = icp.get.signal(pst, pik, **kwargs)
     amp = 10**(val[frame[0]:frame[1]]/20.)
-    return fit.lmfit(amp)
+    return run.processor(amp)
+    #return fit.lmfit(amp)
 
 
 
 @loop
 @timing
-def rsr_inline(pst, pik, save=True, product='MagHiResInco1', **kwargs):
+def rsr_inline(pst, pik, save=True, product='MagHiResInco1', nbcores=4, **kwargs):
     """Process RSR along a profile
     """
     p = icp.get.params()
 
-    val = icp.get.signal(pst, pik, product=product, **kwargs)
+    val = icp.get.signal(pst, pik, product=product, air_loss=False, **kwargs)
     amp = 10**(val/20)
-    b = utils.inline_estim(amp, **kwargs)
+    #b = utils.inline_estim(amp, **kwargs)
+    b = run.along(amp, nbcores=nbcores, **kwargs)
 
     #Reorder data and remove geometric losses in air
-    val2 = icp.get.signal(pst, pik, product=product, air_loss=False, **kwargs)
-    diff = (val2-val)[b['xo']]
+    #val2 = icp.get.signal(pst, pik, product=product, air_loss=False, **kwargs)
+    #diff = (val2-val)[b['xo'].astype(int)]
 
-    data = pd.DataFrame({'1':b['xa'].values, 
+    data = pd.DataFrame({'1':b['xa'].values,
                          '2':b['xo'].values,
-                         '3':b['xb'].values, 
-                         '4':b['pt'].values + diff,
-                         '5':b['pc'].values + diff,
-                         '6':b['pn'].values + diff,
-                         '7':b['mu'].values, 
-                         '8':b['crl'].values, 
-                         '9':b['chisqr'].values,
-                         '91':b['flag'].values})
+                         '3':b['xb'].values,
+                         '4':b['pt'].values,# + diff,
+                         '5':b['pc'].values,# + diff,
+                         '6':b['pn'].values,# + diff,
+                         '7':b['mu'].values,
+                         '8':b['crl'].values,
+                         '9':b['chisqr'].values}
+                         )
 
     if save is True:
         folder = p['rsr_path'] + '/' + pst
@@ -118,9 +122,9 @@ def topik1m(pst, pik, from_process='pik1', from_product='MagLoResInco1', to_prod
     """
     p = icp.get.params()
 
-    source = string.replace(p['pik_path'], p['process'], '') + from_process + '/' + pst + '/' + from_product + '.' + pik
+    source = p['pik_path'].replace( p['process'], '') + from_process + '/' + pst + '/' + from_product + '.' + pik
     bxds = p['cmp_path'] + '/' + pst + '/'+ to_product
-    sweep = string.join([p['sweep_path'], pst, 'sweeps'], '/')
+    sweep = '/'.join([p['sweep_path'], pst, 'sweeps'])
 
     test = icp.read.isfile(source) * icp.read.isfile(bxds) * icp.read.isfile(sweep, verbose=False)
     if test is 0: return
@@ -162,7 +166,7 @@ def gather(pst, pik, fil=None, product='MagHiResInco1', **kwargs):
       a['ice_thickness'] = icp.get.ice_thickness(pst)[xo]
     else:
       return
-    
+
     if os.path.isfile(p['rsr_path'] + '/' + pst + '/' + product + '.' + pik + '.surface_coefficients'):
         b = icp.read.surface_coefficients(pst, pik, **kwargs)
         a['Rsc'] = b['Rsc']
@@ -198,7 +202,7 @@ def gather(pst, pik, fil=None, product='MagHiResInco1', **kwargs):
         d.to_csv(fil, index=False, float_format='%.7f', na_rep='nan')
     else:
         a.to_csv(fil, index=False, float_format='%.7f', na_rep='nan')
-  
+
 
 
 @loop
@@ -210,7 +214,7 @@ def surface_coefficients(pst, pik, wb=15e6, product='MagHiResInco1', save=True, 
     a = icp.read.rsr(pst, pik, product='MagHiResInco1', **kwargs)
     h = icp.get.surface_range(pst)[a['xo'].astype(int)]
     Rsc, Rsn = invert.srf_coeff(Psc=a['pc'], Psn=a['pn'], h0=h, wb=15e6)
- 
+
     out = {'0_Rsc':Rsc, '1_Rsn':Rsn}
 
     if save is True:
@@ -280,7 +284,7 @@ def bed_coefficients(pst, bed_pik, srf_pik=None, att_rate=0., wf=60e6, wb=15e6, 
     n1 = np.sqrt(s_prop['eps'])
     sh = s_prop['sh']
     Q1 = 2 * h1/1e3 * att_rate
-    
+
     Rbc, Rbn = invert.bed_coeff(Psc=s['pc'], Psn=s['pn'],
                                 Pbc=b['pc'], Pbn=b['pn'],
                                 n1=n1, sh=sh, h0=h0, h1=h1, Q1=Q1,
