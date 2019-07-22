@@ -86,12 +86,7 @@ def rsr_inline(pst, pik, save=True, product='MagHiResInco1', nbcores=4, **kwargs
 
     val = icp.get.signal(pst, pik, product=product, air_loss=False, **kwargs)
     amp = 10**(val/20)
-    #b = utils.inline_estim(amp, **kwargs)
     b = run.along(amp, nbcores=nbcores, **kwargs)
-
-    #Reorder data and remove geometric losses in air
-    #val2 = icp.get.signal(pst, pik, product=product, air_loss=False, **kwargs)
-    #diff = (val2-val)[b['xo'].astype(int)]
 
     data = pd.DataFrame({'1':b['xa'].values,
                          '2':b['xo'].values,
@@ -207,7 +202,7 @@ def gather(pst, pik, fil=None, product='MagHiResInco1', **kwargs):
 
 @loop
 @timing
-def surface_coefficients(pst, pik, wb=15e6, product='MagHiResInco1', save=True, **kwargs):
+def surface_coefficients(pst, pik, wb=15e6, gain=0, product='MagHiResInco1', save=True, **kwargs):
     """Surface coefficients (Reflectance and Scattering)
     """
     p = icp.get.params()
@@ -215,7 +210,7 @@ def surface_coefficients(pst, pik, wb=15e6, product='MagHiResInco1', save=True, 
     h = icp.get.surface_range(pst)[a['xo'].astype(int)]
     Rsc, Rsn = invert.srf_coeff(Psc=a['pc'], Psn=a['pn'], h0=h, wb=15e6)
 
-    out = {'0_Rsc':Rsc, '1_Rsn':Rsn}
+    out = {'0_Rsc':Rsc + gain, '1_Rsn':Rsn + gain}
 
     if save is True:
         p = icp.get.params()
