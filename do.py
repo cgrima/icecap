@@ -174,11 +174,11 @@ def gather(pst, pik, fil=None, product='MagHiResInco1', **kwargs):
         b = icp.read.surface_properties(pst, pik, **kwargs)
         a['sh'] = b['sh']
         a['eps'] = b['eps']
-        a['flag'] = r['flag']*b['flag']
+#        a['flag'] = r['flag']*b['flag']
     else:
         a['sh'] = [np.nan for i in xo]
         a['eps'] = [np.nan for i in xo]
-        a['flag'] = [np.nan for i in xo]
+#        a['flag'] = [np.nan for i in xo]
 
     if os.path.isfile(p['rsr_path'] + '/' + pst + '/' + product + '.' + pik + '.bed_coefficients'):
         b = icp.read.bed_coefficients(pst, pik, **kwargs)
