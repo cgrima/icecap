@@ -149,9 +149,11 @@ def gather(pst, pik, fil=None, product='MagHiResInco1', **kwargs):
     print('Gathering data from '+pst)
 
     r = icp.read.rsr(pst, pik, **kwargs)
+
     if os.path.isfile(p['rsr_path'] + '/' + pst + '/' + product + '.' + pik ):
       xo = [np.int(i) for i in r['xo']]
-      #a['pst'] = np.array([pst for i in xo])
+      a['pst'] = np.full(len(r['xo']), pst)
+      a['pik'] = np.full(len(r['xo']), pik)
       a['xo'] = xo
       a['crl'] = r['crl']
       a['longitude'] = icp.get.longitude(pst)[xo]
@@ -207,15 +209,16 @@ def surface_coefficients(pst, pik, wb=15e6, gain=0, product='MagHiResInco1', sav
     """
     p = icp.get.params()
     a = icp.read.rsr(pst, pik, product='MagHiResInco1', **kwargs)
-    h = icp.get.surface_range(pst)[a['xo'].astype(int)]
-    Rsc, Rsn = invert.srf_coeff(Psc=a['pc'], Psn=a['pn'], h0=h, wb=15e6)
+    if a is not None:
+        h = icp.get.surface_range(pst)[a['xo'].astype(int)]
+        Rsc, Rsn = invert.srf_coeff(Psc=a['pc'], Psn=a['pn'], h0=h, wb=15e6)
 
-    out = {'0_Rsc':Rsc + gain, '1_Rsn':Rsn + gain}
+        out = {'0_Rsc':Rsc + gain, '1_Rsn':Rsn + gain}
 
-    if save is True:
-        p = icp.get.params()
-        target = p['rsr_path'] + '/' + pst + '/' + product + '.' + pik + '.' + inspect.stack()[0][3]
-        icp.do.save(out, target)
+        if save is True:
+            p = icp.get.params()
+            target = p['rsr_path'] + '/' + pst + '/' + product + '.' + pik + '.' + inspect.stack()[0][3]
+            icp.do.save(out, target)
 
 
 
