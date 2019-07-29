@@ -2,7 +2,6 @@ import glob
 import icecap as icp
 import numpy as np
 import os
-#import string
 import fnmatch
 import subradar as sr
 import rsr
@@ -81,9 +80,9 @@ def rsr(pst, process=None, **kwargs):
     if process is None:
         process = p['process']
     folder = '/'.join([p['rsr_path'].replace('/'+p['process'],''), process, pst])
-    files = glob.glob(folder + '/*[!.meta]')
+    files = glob.glob(folder + '/*.*')
     products = [i.split('/')[-1] for i in files]
-    pik = [i.split('.')[1] for i in products]
+    pik = [i.split('.')[1] for i in products if len(i.split('.')) == 2]
     return pik
 
 
