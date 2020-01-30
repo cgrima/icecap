@@ -163,9 +163,14 @@ def signal(pst, pik, scale=1/1000., calib=True, air_loss=True, gain=0, **kwargs)
 
     h = icp.get.surface_range(pst)
     # Pad the end of piks with nans to equal regular data length
-    val = np.pad(val.astype(float), (0,np.size(h)-np.size(val)),
-                 'constant', constant_values=np.nan)
-
+    padding = np.abs((0,np.size(h)-np.size(val)))
+    if len(h) > len(val):
+        val = np.pad(val.astype(float), padding, 'constant', constant_values=np.nan)
+    elif len(h) < len(val):
+        h = np.pad(h.astype(float), padding, 'constant', constant_values=np.nan)
+    else:
+        pass
+    print(scale)
     val = val*scale
 
     if calib is True:
