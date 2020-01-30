@@ -228,13 +228,18 @@ def surface_properties(pst, pik, wf=60e6, product='MagHiResInco1', save=True, **
     """Return surface permittivity and RMS height
     """
     a = icp.read.rsr(pst, pik, **kwargs)
+    b = icp.read.surface_coefficients(pst, pik, **kwargs)
     h = icp.get.surface_range(pst)[a['xo'].astype(int)]
+
     L = 10*np.log10( sr.utils.geo_loss(2*h) )
+
+    # Ultimately change that to take the calval from a file
+    calval = np.nanmedian(-a['pc']+L+b['Rsc'])
 
     eps, sh, flag = np.zeros(np.size(h)), np.zeros(np.size(h)), np.zeros(np.size(h))
 
     for i, val in enumerate(h):
-        tmp = invert.spm(wf, a['pc'][i]-L[i], a['pn'][i]-L[i])
+        tmp = invert.spm(wf, a['pc'][i]-L[i]+calval, a['pn'][i]-L[i]+calval)
         eps[i] = tmp['eps']
         sh[i] = tmp['sh']
         flag[i] = np.int(3e8/wf*0.05 > tmp['sh'])

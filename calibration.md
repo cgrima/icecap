@@ -11,7 +11,7 @@ Calibration over blue ice (eps=3.15) at MIS
 
 ```python
 In [1]: import icecap as icp                                                                                        
-In [2]: icp.do.rsr('MIS/JKB2e/Y37a', 'srf_cyg', [46500,47999], gain=-274.25).report()                               
+In [2]: icp.do.rsr('MIS/JKB2e/Y37a', 'srf_cyg', [46500,47999], air_loss=True, gain=-274.25).report()                               
 [1] [ 11.52 s.] [ 33 eval.] [0.936]
 Fit succeeded.
 pt = -11.1 dB, pc = -11.1 dB, pn = -32.5 dB, pc-pn = 21.4 dB, 
