@@ -33,4 +33,4 @@ SPM @ 60 MHz gives, eps = 3.150, sh = 3.00e-02 m
 
 ## GOG3
 
-Pretty hard to find a good place for calibration with a stable aircraft. So, is for now, t is assumed to be the same as ICP5
+Pretty hard to find a good place for calibration with a stable aircraft. So, as for now, it is assumed to be the same as ICP5
