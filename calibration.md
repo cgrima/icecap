@@ -17,3 +17,20 @@ Fit succeeded.
 pt = -11.1 dB, pc = -11.1 dB, pn = -32.5 dB, pc-pn = 21.4 dB, 
 SPM @ 60 MHz gives, eps = 3.147, sh = 3.50e-02 m
 ```
+
+## ICP5
+
+Calibration over blue ice (eps=3.15) at MIS
+
+```python
+In [1]: import icecap as icp
+In [2]: icp.do.rsr('WLB/JKB2h/Y37b', 'srf_elg', [69815,70814], air_loss=True, gain=-274.20).report()                                                                    
+[1] [  8.95 s.] [ 41 eval.] [0.947]
+Fit succeeded.
+pt = -11.1 dB, pc = -11.1 dB, pn = -34.3 dB, pc-pn = 23.2 dB, 
+SPM @ 60 MHz gives, eps = 3.150, sh = 3.00e-02 m
+```
+
+## GOG3
+
+Pretty hard to find a good place for calibration with a stable aircraft. So, is for now, t is assumed to be the same as ICP5
