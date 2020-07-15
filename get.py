@@ -130,8 +130,11 @@ def surface_range(pst, **kwargs):
 
 def ice_thickness(pst, **kwargs):
     p = icp.get.params()
-    t, val = icp.read.tpro(pst, 'p_pik1_icethk', 'ztim_llh_icethk', interp=True)
     tref = icp.read.ztim(p['foc_path']+'/'+pst+'/ztim_DNhH')['htim']
+    try:
+        t, val = icp.read.tpro(pst, 'p_pik1_icethk', 'ztim_llh_icethk', interp=True)
+    except TypeError:
+        t, val = tref*np.nan, tref*np.nan
     return np.interp(tref, t, val)
 
 
