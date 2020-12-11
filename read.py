@@ -22,6 +22,16 @@ def isfile(fil, verbose=True):
     return out
 
 
+def continuous_vec(x):
+    """Modify a vector to make it continuous if needed. Designed to be
+    applied on time stamps crossing midnight
+    """
+    i = np.argmin(x)
+    if i != 0:
+        x[i:] = x[i:] + x[i-1]
+    return x
+
+
 def norm(pst, instrument, stream, interp=False, **kwargs):
     """Read data streams from norm
     ARGUMENTS
@@ -49,7 +59,7 @@ def norm(pst, instrument, stream, interp=False, **kwargs):
         if icp.read.isfile(foc_file) is False: return
 
         foc_time = ztim(foc_file)['htim'].values
-        data = np.interp(foc_time, time, data)
+        data = np.interp(continuous_vec(foc_time), continuous_vec(time), data)
         time = foc_time
 
     return time, data
@@ -73,7 +83,8 @@ def tpro(pst, typ, fil, interp=True, **kwargs):
         if icp.read.isfile(foc_file) is False: return
 
         foc_time = ztim(foc_file)['htim'].values
-        data = np.interp(foc_time, time, data)
+        data = np.interp(continuous_vec(foc_time), continuous_vec(time), data)
+        #data = np.interp(foc_time, time, data)
         time = foc_time
 
     return time, data
