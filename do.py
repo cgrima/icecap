@@ -151,18 +151,24 @@ def gather(pst, pik, fil=None, product='MagHiResInco1', **kwargs):
     r = icp.read.rsr(pst, pik, **kwargs)
 
     if os.path.isfile(p['rsr_path'] + '/' + pst + '/' + product + '.' + pik ):
-      xo = [np.int(i) for i in r['xo']]
-      a['pst'] = np.full(len(r['xo']), pst)
-      a['pik'] = np.full(len(r['xo']), pik)
-      a['xo'] = xo
-      a['crl'] = r['crl']
-      a['longitude'] = icp.get.longitude(pst)[xo]
-      a['latitude'] = icp.get.latitude(pst)[xo]
-      a['roll'] = icp.get.roll(pst)[xo]
-      a['surface_range'] = icp.get.surface_range(pst)[xo]
-      a['ice_thickness'] = icp.get.ice_thickness(pst)[xo]
+        xo = [np.int(i) for i in r['xo']]
+        a['pst'] = np.full(len(r['xo']), pst)
+        a['pik'] = np.full(len(r['xo']), pik)
+        a['xo'] = xo
+        a['crl'] = r['crl']
+        a['longitude'] = icp.get.longitude(pst)[xo]
+        a['latitude'] = icp.get.latitude(pst)[xo]
+        a['surface_range'] = icp.get.surface_range(pst)[xo]
+        try:
+            a['roll'] = icp.get.roll(pst)[xo]
+        except TypeError:
+            pass
+        try:
+            a['ice_thickness'] = icp.get.ice_thickness(pst)[xo]
+        except TypeError:
+            pass
     else:
-      return
+        return
 
     if os.path.isfile(p['rsr_path'] + '/' + pst + '/' + product + '.' + pik + '.surface_coefficients'):
         b = icp.read.surface_coefficients(pst, pik, **kwargs)

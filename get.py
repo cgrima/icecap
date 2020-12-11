@@ -124,8 +124,7 @@ def surface_range(pst, **kwargs):
     """
     p = icp.get.params()
     t, val = icp.read.norm(pst, 'LAS', 'las_rng', interp=True)
-    tref = icp.read.ztim(p['foc_path']+'/'+pst+'/ztim_DNhH')['htim']
-    return np.interp(tref, t, val)
+    return val
 
 
 def ice_thickness(pst, **kwargs):
@@ -135,29 +134,23 @@ def ice_thickness(pst, **kwargs):
         t, val = icp.read.tpro(pst, 'p_pik1_icethk', 'ztim_llh_icethk', interp=True)
     except TypeError:
         t, val = tref*np.nan, tref*np.nan
-    return np.interp(tref, t, val)
+    return val
 
 
 def longitude(pst):
     p = icp.get.params()
     t, val = icp.read.norm(pst, 'GPS', 'lon_ang', interp=True)
-    tref = icp.read.ztim(p['foc_path']+'/'+pst+'/ztim_DNhH')['htim']
-    return np.interp(tref, t, val)
-
+    return val
 
 def latitude(pst):
     p = icp.get.params()
     t, val = icp.read.norm(pst, 'GPS', 'lat_ang', interp=True)
-    tref = icp.read.ztim(p['foc_path']+'/'+pst+'/ztim_DNhH')['htim']
-    return np.interp(tref, t, val)
-
+    return val
 
 def roll(pst):
     p = icp.get.params()
     t, val = icp.read.norm(pst, 'AVN', 'roll_ang', interp=True)
-    tref = icp.read.ztim(p['foc_path']+'/'+pst+'/ztim_DNhH')['htim']
-    return np.interp(tref, t, val)
-
+    return val
 
 def signal(pst, pik, scale=1/1000., calib=True, air_loss=True, gain=0, **kwargs):
     """Extract signal from a pik file and apply various corrections
