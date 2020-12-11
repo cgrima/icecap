@@ -31,6 +31,19 @@ pt = -11.1 dB, pc = -11.1 dB, pn = -34.3 dB, pc-pn = 23.2 dB,
 SPM @ 60 MHz gives, eps = 3.150, sh = 3.00e-02 m
 ```
 
+## ICP6
+
+Calibration over blue ice (eps=3.15) at MIS
+
+```python
+In [1]: import icecap as icp
+Int [2]: icp.do.rsr('SMIS/MKB2l/X06a', 'srf_elg', [35000,36000], air_loss=True, gain=-270.23).report()
+[1] [  7.73 s.] [ 43 eval.] [0.977]
+Fit succeeded.
+pt = -11.0 dB, pc = -11.2 dB, pn = -29.2 dB, pc-pn = 18.0 dB, 
+SPM @ 60 MHz gives, eps = 3.149, sh = 5.00e-02 m
+```
+
 ## GOG3
 
 Pretty hard to find a good place for calibration with a stable aircraft. So, as for now, it is assumed to be the same as ICP5
