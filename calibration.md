@@ -47,3 +47,9 @@ SPM @ 60 MHz gives, eps = 3.149, sh = 5.00e-02 m
 ## GOG3
 
 Pretty hard to find a good place for calibration with a stable aircraft. So, as for now, it is assumed to be the same as ICP5
+
+## SRH1
+
+Anja and I were pretty unsatisfied by the calibration we could do for SRH1. We ended up by using the surface snow density derived at CrA1 ice core (~ 137.8 kg/m3, i.e., permittivity = 1.246) since it is the only ice core with roughness smooth enough for our model to be reliable (< 0.25 m), but there is no way to measure the reliability of the derived calibration value, especially, I think the roll was pretty unstable. CrA1 and others are flown by DEV/JKB2t/Y75a. The figure below shows various RSR results for different calibration values.
+
+![](https://github.com/cgrima/icecap/blob/master/figs/DEV_JKB2t_Y75a_calib.png)
