@@ -122,7 +122,7 @@ def topik1m(pst, pik, from_process='pik1', from_product='MagLoResInco1', to_prod
     sweep = '/'.join([p['sweep_path'], pst, 'sweeps'])
 
     test = icp.read.isfile(source) * icp.read.isfile(bxds) * icp.read.isfile(sweep, verbose=False)
-    if test is 0: return
+    if test == 0: return
 
     if not os.path.exists(p['pik_path'] + '/' + pst):
         os.makedirs(p['pik_path'] + '/' + pst)
