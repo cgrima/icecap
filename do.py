@@ -156,6 +156,9 @@ def gather(pst, pik, fil=None, product='MagHiResInco1', **kwargs):
         a['pik'] = np.full(len(r['xo']), pik)
         a['xo'] = xo
         a['crl'] = r['crl']
+        a['Pst'] = r['pt']
+        a['Psc'] = r['pc']
+        a['Psn'] = r['pn']
         a['longitude'] = icp.get.longitude(pst)[xo]
         a['latitude'] = icp.get.latitude(pst)[xo]
         a['surface_range'] = icp.get.surface_range(pst)[xo]
