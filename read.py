@@ -66,7 +66,12 @@ def norm(pst, instrument, stream, interp=False, **kwargs):
 
 
 def tpro(pst, typ, fil, interp=True, **kwargs):
-    """Read tpro file
+    """Read tpro or treg file
+    !!!!!!!!!!!!!!!!!!
+    !!! DEPRECATED !!!
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !!! Use read.targ instead !!!
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     """
     p = icp.get.params()
     data_file = p['tpro_path'] + '/' + pst + '/' + typ + '/' + fil + '.bin'
@@ -88,6 +93,37 @@ def tpro(pst, typ, fil, interp=True, **kwargs):
         time = foc_time
 
     return time, data
+
+
+def targ(pst, folder, typ, fil, interp=True, column=-1, **kwargs):
+    """Read a binary file from targ
+    ARGUMENT examples
+        pst : 'DEV/JKB2t/X101a'
+        folder : 'treg'
+        typ : 'TRJ_JKB0'
+        fil : 'ztim_llzrphaaas'
+    """
+    p = icp.get.params()
+    data_file = p[folder+'_path'] + '/' + pst + '/' + typ + '/' + fil + '.bin'
+    if icp.read.isfile(data_file) is False: return
+
+    os.system('zvert ' + data_file + ' > tmp.tab')
+    data = np.genfromtxt('tmp.tab')[:,column]
+    time = ztim('tmp.tab')['htim'].values
+    os.system('rm tmp.tab')
+
+    if interp is True: #interpolate to 1-m sampling
+        foc_file = p['foc_path'] + '/' + pst + '/ztim_DNhH'
+
+        if icp.read.isfile(foc_file) is False: return
+
+        foc_time = ztim(foc_file)['htim'].values
+        data = np.interp(continuous_vec(foc_time), continuous_vec(time), data)
+        #data = np.interp(foc_time, time, data)
+        time = foc_time
+
+    return time, data
+
 
 def ztim(fil):
     """Read time in a ztim-format file

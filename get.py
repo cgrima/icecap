@@ -22,6 +22,7 @@ def params():
     out['foc_path'] = out['root_path'] + '/targ/xtra/' + out['season']+ '/FOC/Best_Versions/S1_POS'
     out['sweep_path'] = out['root_path'] + '/targ/xtra/' + out['season']+ '/FOC/Best_Versions/S5_VEW'
     out['tpro_path'] = out['root_path'] + '/targ/tpro'
+    out['treg_path'] = out['root_path'] + '/targ/treg'
     out['season_flight_pst'] = out['root_path'] + '/syst/linux/lib/dbase/season_flight_pst'
     return out
 
@@ -131,7 +132,7 @@ def ice_thickness(pst, **kwargs):
     p = icp.get.params()
     tref = icp.read.ztim(p['foc_path']+'/'+pst+'/ztim_DNhH')['htim']
     try:
-        t, val = icp.read.tpro(pst, 'p_pik1_icethk', 'ztim_llh_icethk', interp=True)
+        t, val = icp.read.targ(pst, 'treg', 'TRJ_JKB0', 'ztim_llzrphsaaa', interp=True)
     except TypeError:
         t, val = tref*np.nan, tref*np.nan
     return val
@@ -149,7 +150,12 @@ def latitude(pst):
 
 def roll(pst):
     p = icp.get.params()
-    t, val = icp.read.norm(pst, 'AVN', 'roll_ang', interp=True)
+    if pst.split('/')[1] in ['JKB2t']:
+        if pst.split('/')[0] in ['SRH1', 'DEV', 'DEV2', 'HIC', 'NDEVON']:
+            t, val = icp.read.targ(pst, 'treg', 'TRJ_JKB0', 'ztim_llzrphsaaa', interp=True, 
+column=-7)
+    else:
+        t, val = icp.read.norm(pst, 'AVN', 'roll_ang', interp=True)
     return val
 
 def signal(pst, pik, scale=1/1000., calib=True, air_loss=True, gain=0, **kwargs):
