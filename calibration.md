@@ -56,6 +56,10 @@ pt = -11.3 dB, pc = -11.2 dB, pn = -26.1 dB, pc-pn = 14.8 dB, mu = 10.0 dB,
 SPM @ 60 MHz gives, eps = 3.148, sh = 7.49e-02 m
 ```
 
+This gives the following permittivities over the calibration area:
+
+![](https://github.com/cgrima/icecap/blob/master/figs/ICP10_GCX_calibration.png)
+
 ## GOG3
 
 Pretty hard to find a good place for calibration with a stable aircraft. So, as for now, it is assumed to be the same as ICP5
