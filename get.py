@@ -37,8 +37,8 @@ def pik(pst, process=None, **kwargs):
     files = glob.glob(folder + '/*.*')
     names = [i.split('/')[-1] for i in files]
     products = [i.split('.')[0] for i in names]
-    pik = [i.split('.')[1] for i in names]
-
+    pik = products
+    #pik = [i.split('.')[1] for i in names]
     return products, pik
 
 
