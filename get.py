@@ -140,12 +140,12 @@ def ice_thickness(pst, **kwargs):
 
 def longitude(pst):
     p = icp.get.params()
-    t, val = icp.read.norm(pst, 'GPS', 'lon_ang', interp=True)
+    t, val = icp.read.norm(pst, 'GPS', 'lon_ang', interp=False)
     return val
 
 def latitude(pst):
     p = icp.get.params()
-    t, val = icp.read.norm(pst, 'GPS', 'lat_ang', interp=True)
+    t, val = icp.read.norm(pst, 'GPS', 'lat_ang', interp=False)
     return val
 
 def roll(pst):
