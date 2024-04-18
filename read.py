@@ -43,13 +43,13 @@ def norm(pst, instrument, stream, interp=False, **kwargs):
     p = icp.get.params()
 
     data_file = p['norm_path'] + '/' + pst + '/' + instrument + '_' + \
-                pst.split('/')[1][0:3] + 'a/' + stream
+                'SJBa/' + stream
     time_file = p['norm_path'] + '/' + pst + '/' + instrument + '_' + \
-               pst.split('/')[1][0:3] + 'a/syn_ztim'
+                'SJBa/syn_ztim'
 
     if icp.read.isfile(data_file) is False: return
     if icp.read.isfile(time_file) is False: return
-
+    
     data = np.genfromtxt(data_file)
     time = ztim(time_file)['htim'].values
 

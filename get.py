@@ -124,7 +124,7 @@ def surface_range(pst, **kwargs):
     """Range to surface interpolated alon the foc_time
     """
     p = icp.get.params()
-    t, val = icp.read.norm(pst, 'LAS', 'las_rng', interp=True)
+    t, val = icp.read.norm(pst, 'LAS', 'las_rng', interp=False)
     return val
 
 
