@@ -131,7 +131,7 @@ def ztim(fil):
         fil : string (full path + file name to read)
     """
     if icp.read.isfile(fil) is False: return
-    out = pd.read_csv(fil, sep='\(|\)| |,', header=None)
+    out = pd.read_csv(fil, sep='\(|\)| |,', header=None, engine='python')
     a = np.array(out)
     htim = (a[:,3] - a[:,3])*24 + a[:,5]*24/(86400*1e4)
     out['htim'] = htim
@@ -159,7 +159,7 @@ def pik(pst, pik, process=None, product='MagHiResInco1', **kwargs):
     os.system('grep P ' + fil + ' > ' + p['code_path'] + '/.read_pik.tmp')
     out = np.genfromtxt('.read_pik.tmp', delimiter='\t')
     os.system('rm ' + p['code_path'] + '/.read_pik.tmp')
-    os.system('rm ' + p['code_path'] + '/' + fil)
+    os.system('rm ' + fil)
     return out[:, 2], out[:, 3] # Y coordinate, value
 
 
