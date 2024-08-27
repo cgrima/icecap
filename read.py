@@ -151,15 +151,17 @@ def pik(pst, pik, process=None, product='MagHiResInco1', **kwargs):
     p = icp.get.params()
     if process is None:
         process = p['process']
-#    fil = p['pik_path'].replace( p['process'], '') + process + '/' + pst + '/' + product + '.' + pik
-    fil_gz = p['pik_path'].replace( p['process'], '') + process + '/' + pst + '/' + pik + '.gz'
-    if icp.read.isfile(fil_gz) is False: return
-    fil = fil_gz.split('.')[0]
-    os.system('zcat ' + fil_gz + ' > ' + fil)
+    fil = p['pik_path'].replace( p['process'], '') + process + '/' + pst + '/' + pik
+    fil = fil.replace('orig', 'targ').replace('rpe1', 'rpe2') 
+    if icp.read.isfile(fil) is False: return
+#    fil_gz = p['pik_path'].replace( p['process'], '') + process + '/' + pst + '/' + pik + '.gz'
+#    if icp.read.isfile(fil_gz) is False: return
+#    fil = fil_gz.split('.')[0]
+#    os.system('zcat ' + fil_gz + ' > ' + fil)
     os.system('grep P ' + fil + ' > ' + p['code_path'] + '/.read_pik.tmp')
     out = np.genfromtxt('.read_pik.tmp', delimiter='\t')
     os.system('rm ' + p['code_path'] + '/.read_pik.tmp')
-    os.system('rm ' + fil)
+#    os.system('rm ' + fil)
     return out[:, 2], out[:, 3] # Y coordinate, value
 
 
